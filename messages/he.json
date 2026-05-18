@@ -1,0 +1,63 @@
+{
+  "auth": {
+    "signUp": "כנס עם דוא״ל",
+    "emailLabel": "כתובת דוא״ל",
+    "emailPlaceholder": "you@example.com",
+    "sendLink": "שלח קישור התחברות",
+    "checkEmail": "בדוק את הדוא״ל שלך",
+    "checkEmailDescription": "שלחנו קישור התחברות לכתובת {email}",
+    "nameLabel": "שם",
+    "namePlaceholder": "שם שלך",
+    "continue": "המשך",
+    "sending": "שולח...",
+    "creating": "יוצר...",
+    "invalidEmail": "כתובת דוא״ל לא תקינה",
+    "emailRequired": "כתובת דוא״ל נדרשת",
+    "nameRequired": "שם נדרש"
+  },
+  "lists": {
+    "ourLists": "הרשימות שלנו",
+    "noLists": "אין רשימות עדיין",
+    "createFirst": "צור רשימה ראשונה",
+    "createNew": "צור רשימה חדשה",
+    "createList": "צור",
+    "cancel": "ביטול",
+    "listNameLabel": "שם הרשימה",
+    "listNamePlaceholder": "סופר תל אביב",
+    "listTypeLabel": "סוג הרשימה",
+    "supermarket": "סופר",
+    "pharmacy": "בית מרקחת",
+    "house": "בית"
+  },
+  "items": {
+    "addItem": "הוסף פריט",
+    "itemName": "שם הפריט",
+    "itemQty": "כמות (אופציונלי)",
+    "category": "קטגוריה",
+    "add": "הוסף",
+    "update": "עדכן",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "doneEating": "סיימתי קניות",
+    "finishShopping": "סיימתי את הקניות?",
+    "finishConfirm": "{count} פריטים שסומנו יוסרו. המשך?",
+    "yes": "כן, סיימתי",
+    "empty": "אין פריטים"
+  },
+  "invite": {
+    "invitePartner": "הזמן את השותף שלך",
+    "inviteLink": "קישור הזמנה",
+    "copy": "העתק",
+    "copied": "הועתק",
+    "newLink": "צור קישור חדש",
+    "creating": "יוצר..."
+  },
+  "errors": {
+    "loading": "טוען...",
+    "error": "שגיאה",
+    "tryAgain": "נסה שוב",
+    "notFound": "לא נמצא",
+    "authFailed": "ההתחברות נכשלה",
+    "createFailed": "יצירה נכשלה"
+  }
+}

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import type { List } from '@/lib/db/types';
 import { EmojiIcon } from '@/lib/icon-map';
-import { Settings, ChevronLeft } from 'lucide-react';
+import { Settings, ChevronLeft, Trash2 } from 'lucide-react';
 
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
   supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
@@ -47,21 +47,52 @@ function ProgressBadge({ ticked, total }: { ticked: number; total: number }) {
   );
 }
 
-function ListCard({ list, onOpen, ticked, total }: { list: ListWithProgress; onOpen: () => void; ticked: number; total: number }) {
+function ListCard({ list, onOpen, ticked, total, onDelete }: { list: ListWithProgress; onOpen: () => void; ticked: number; total: number; onDelete: () => void }) {
   const type = listTypeNames[list.type];
   const pct = total ? Math.round((ticked / total) * 100) : 0;
+  const [swipeX, setSwipeX] = useState(0);
+  const startX = useRef(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - startX.current;
+    if (diff < 0) {
+      setSwipeX(Math.max(diff, -100));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (swipeX < -50) {
+      setSwipeX(-100);
+    } else {
+      setSwipeX(0);
+    }
+  };
 
   return (
-    <button
-      onClick={onOpen}
-      className="w-full bg-surface rounded-xl p-4 border-0 cursor-pointer shadow-card hover:shadow-modal transition-all text-right flex flex-col gap-3 font-inherit text-inherit color-inherit"
-      style={{
-        transition: 'transform 0.12s',
-      }}
-      onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.985)')}
-      onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-      onPointerLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+    <div
+      className="relative overflow-hidden rounded-xl"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
+      <button
+        onClick={() => {
+          if (swipeX === 0) onOpen();
+        }}
+        className="w-full bg-surface rounded-xl p-4 border-0 cursor-pointer shadow-card hover:shadow-modal transition-all text-right flex flex-col gap-3 font-inherit text-inherit color-inherit"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: swipeX === 0 || swipeX === -100 ? 'transform 0.3s ease-out' : 'none',
+        }}
+        onPointerDown={(e) => (e.currentTarget.style.transform = `translateX(${swipeX}px) scale(0.985)`)}
+        onPointerUp={(e) => (e.currentTarget.style.transform = `translateX(${swipeX}px) scale(1)`)}
+        onPointerLeave={(e) => (e.currentTarget.style.transform = `translateX(${swipeX}px) scale(1)`)}
+      >
       <div className="flex items-start gap-3">
         <div
           className="w-14 h-14 rounded-lg flex items-center justify-center text-2xl flex-shrink-0"
@@ -95,7 +126,14 @@ function ListCard({ list, onOpen, ticked, total }: { list: ListWithProgress; onO
           />
         </div>
       )}
-    </button>
+      </button>
+      <button
+        onClick={onDelete}
+        className="absolute inset-y-0 right-0 w-20 bg-red-500 flex items-center justify-center text-white hover:bg-red-600 transition-colors"
+      >
+        <Trash2 size={20} />
+      </button>
+    </div>
   );
 }
 
@@ -126,6 +164,7 @@ export default function ListsPage() {
   const [user, setUser] = useState<any>(null);
   const [householdMembers, setHouseholdMembers] = useState<Array<{ name: string; emoji: string; bg: string }>>([]);
   const [items, setItems] = useState<Record<string, any[]>>({});
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; listId: string | null; listName: string }>({ show: false, listId: null, listName: '' });
 
   useEffect(() => {
     const checkAuthAndLoadLists = async () => {
@@ -227,6 +266,24 @@ export default function ListsPage() {
     setNewListType('supermarket');
   };
 
+  const handleDeleteList = async (listId: string) => {
+    const { error } = await supabase
+      .from('lists')
+      .delete()
+      .eq('id', listId);
+
+    if (error) {
+      console.error('Error deleting list:', error.message);
+      return;
+    }
+
+    setLists(lists.filter((l) => l.id !== listId));
+    const newItems = { ...items };
+    delete newItems[listId];
+    setItems(newItems);
+    setDeleteConfirm({ show: false, listId: null, listName: '' });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
@@ -291,6 +348,7 @@ export default function ListsPage() {
                   onOpen={() => router.push(`/lists/${list.id}`)}
                   ticked={ticked}
                   total={listItems.length}
+                  onDelete={() => setDeleteConfirm({ show: true, listId: list.id, listName: list.name })}
                 />
               );
             })}
@@ -375,6 +433,30 @@ export default function ListsPage() {
                   הרשימה תהיה משותפת אוטומטית עם <b>השותף שלך</b>.
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm.show && deleteConfirm.listId && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-cream rounded-2xl p-6 w-full max-w-sm">
+            <h2 className="text-lg font-bold mb-2 text-right">למחוק את הרשימה?</h2>
+            <p className="text-sm text-ink-70 mb-6 text-right">{"רשימת: \"" + deleteConfirm.listName + "\" תימחק לתמיד"}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirm({ show: false, listId: null, listName: '' })}
+                className="flex-1 btn btn-ghost"
+              >
+                ביטול
+              </button>
+              <button
+                onClick={() => deleteConfirm.listId && handleDeleteList(deleteConfirm.listId)}
+                className="flex-1 btn bg-red-500 hover:bg-red-600 text-white border-0"
+              >
+                מחק
+              </button>
             </div>
           </div>
         </div>

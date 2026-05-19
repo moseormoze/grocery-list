@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import type { List } from '@/lib/db/types';
 import { EmojiIcon } from '@/lib/icon-map';
-import { Settings, ChevronLeft, Trash2 } from 'lucide-react';
+import { Settings, ChevronLeft, Trash2, MoreVertical } from 'lucide-react';
 
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
   supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
@@ -51,11 +51,14 @@ function ListCard({ list, onOpen, ticked, total, onDelete }: { list: ListWithPro
   const type = listTypeNames[list.type];
   const pct = total ? Math.round((ticked / total) * 100) : 0;
   const [swipeX, setSwipeX] = useState(0);
+  const [showMenu, setShowMenu] = useState(false);
   const startX = useRef(0);
+  const startTime = useRef(0);
   const isDragging = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
+    startTime.current = Date.now();
     isDragging.current = false;
   };
 
@@ -73,7 +76,15 @@ function ListCard({ list, onOpen, ticked, total, onDelete }: { list: ListWithPro
   };
 
   const handleTouchEnd = () => {
-    if (swipeX < -60) {
+    const timeDiff = Date.now() - startTime.current;
+    const distance = Math.abs(swipeX);
+    const velocity = distance / timeDiff; // pixels per millisecond
+
+    // Fast swipe (velocity > 0.5px/ms) opens even if not fully dragged
+    // Otherwise, use 60px threshold
+    const shouldOpen = velocity > 0.5 || swipeX < -60;
+
+    if (shouldOpen && swipeX < 0) {
       setSwipeX(-120);
     } else {
       setSwipeX(0);
@@ -136,8 +147,36 @@ function ListCard({ list, onOpen, ticked, total, onDelete }: { list: ListWithPro
           </div>
           <div className="text-xs font-medium text-ink-50">{list.created_at ? new Date(list.created_at).toLocaleDateString('he-IL') : 'חדש'}</div>
         </div>
-        <div className="text-ink-30 mt-3">
-          <ChevronLeft size={20} />
+        <div className="flex items-center gap-2 mt-3">
+          <div className="relative">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(!showMenu);
+              }}
+              className="text-ink-30 hover:text-ink-50 transition-colors p-2"
+            >
+              <MoreVertical size={20} />
+            </button>
+            {showMenu && (
+              <div className="absolute top-full right-0 mt-2 bg-surface border border-ink-10 rounded-lg shadow-modal z-10 min-w-32">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(false);
+                    onDelete();
+                  }}
+                  className="w-full text-right px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2 justify-end border-0 bg-transparent font-inherit cursor-pointer"
+                >
+                  <Trash2 size={16} />
+                  מחק
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="text-ink-30">
+            <ChevronLeft size={20} />
+          </div>
         </div>
       </div>
       {total > 0 && ticked > 0 && (
@@ -194,6 +233,7 @@ export default function ListsPage() {
   const [householdMembers, setHouseholdMembers] = useState<Array<{ name: string; emoji: string; bg: string }>>([]);
   const [items, setItems] = useState<Record<string, any[]>>({});
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; listId: string | null; listName: string }>({ show: false, listId: null, listName: '' });
+  const [undoData, setUndoData] = useState<{ list: ListWithProgress; items: any[] } | null>(null);
 
   useEffect(() => {
     const checkAuthAndLoadLists = async () => {
@@ -296,6 +336,9 @@ export default function ListsPage() {
   };
 
   const handleDeleteList = async (listId: string) => {
+    const listToDelete = lists.find((l) => l.id === listId);
+    const listItems = items[listId] || [];
+
     const { error } = await supabase
       .from('lists')
       .delete()
@@ -306,11 +349,43 @@ export default function ListsPage() {
       return;
     }
 
+    // Save for undo
+    if (listToDelete) {
+      setUndoData({ list: listToDelete, items: listItems });
+      setTimeout(() => setUndoData(null), 5000); // Clear undo after 5 seconds
+    }
+
     setLists(lists.filter((l) => l.id !== listId));
     const newItems = { ...items };
     delete newItems[listId];
     setItems(newItems);
     setDeleteConfirm({ show: false, listId: null, listName: '' });
+  };
+
+  const handleUndelete = async () => {
+    if (!undoData) return;
+
+    const { data: newList, error: insertError } = await supabase
+      .from('lists')
+      .insert({
+        id: undoData.list.id,
+        name: undoData.list.name,
+        type: undoData.list.type,
+        household_id: undoData.list.household_id,
+        created_at: undoData.list.created_at,
+        updated_at: undoData.list.updated_at,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Error undoing delete:', insertError.message);
+      return;
+    }
+
+    setLists([...lists, newList]);
+    setItems({ ...items, [undoData.list.id]: undoData.items });
+    setUndoData(null);
   };
 
   if (loading) {
@@ -488,6 +563,19 @@ export default function ListsPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Undo Toast */}
+      {undoData && (
+        <div className="fixed bottom-6 left-6 right-6 bg-ink-70 text-cream rounded-xl p-4 shadow-lg flex items-center justify-between z-40">
+          <div className="text-sm font-medium">הרשימה נמחקה</div>
+          <button
+            onClick={handleUndelete}
+            className="text-accent font-bold text-sm hover:opacity-80 transition-opacity border-0 bg-transparent cursor-pointer"
+          >
+            בטל
+          </button>
         </div>
       )}
     </div>

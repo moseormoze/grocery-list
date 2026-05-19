@@ -67,8 +67,8 @@ function ListCard({ list, onOpen, ticked, total, onDelete }: { list: ListWithPro
       isDragging.current = true;
     }
 
-    if (isDragging.current && diff < 0) {
-      setSwipeX(Math.max(diff, -120));
+    if (isDragging.current) {
+      setSwipeX(Math.max(Math.min(diff, 0), -120));
     }
   };
 

@@ -260,7 +260,7 @@ export default function ListDetailPage() {
                     {sectionItems.map((item) => (
                       <div
                         key={item.id}
-                        className="flex flex-row-reverse items-center gap-1 min-h-14 px-1.5 py-1 cursor-pointer border-b border-ink-06 last:border-b-0 rounded-lg transition-opacity"
+                        className="flex items-center gap-2 min-h-14 px-2 py-1 cursor-pointer border-b border-ink-06 last:border-b-0 rounded-lg transition-opacity"
                         style={{
                           opacity: !mode && item.ticked ? 0.5 : 1,
                         }}
@@ -276,46 +276,6 @@ export default function ListDetailPage() {
                           }
                         }}
                       >
-                        {mode === 'edit' ? (
-                          <>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteItem(item);
-                              }}
-                              className="w-11 h-11 flex items-center justify-center bg-transparent border-0 cursor-pointer text-lg text-danger hover:bg-red-100 rounded transition-colors"
-                            >
-                              🗑️
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingItem(item);
-                                setItemName(item.name);
-                                setItemQty(item.qty || '');
-                                setItemSection(item.section_id || 'other');
-                                setShowAddSheet(true);
-                              }}
-                              className="w-11 h-11 flex items-center justify-center bg-transparent border-0 cursor-pointer text-lg text-ink-70 hover:bg-ink-06 rounded transition-colors"
-                            >
-                              ✏️
-                            </button>
-                            <div className="w-11 h-11 flex items-center justify-center text-ink-30 cursor-grab text-lg">
-                              ⋮
-                            </div>
-                          </>
-                        ) : (
-                          <div
-                            className="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors"
-                            style={{
-                              borderColor: item.ticked ? '#F4B5A0' : '#1C1B17',
-                              background: item.ticked ? '#F4B5A0' : 'transparent',
-                            }}
-                          >
-                            {item.ticked && <span className="text-sm text-white">✓</span>}
-                          </div>
-                        )}
-
                         <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                           <div
                             className="text-base font-semibold leading-snug"
@@ -341,6 +301,42 @@ export default function ListDetailPage() {
                             </div>
                           )}
                         </div>
+
+                        {mode === 'edit' ? (
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingItem(item);
+                                setItemName(item.name);
+                                setItemQty(item.qty || '');
+                                setItemSection(item.section_id || 'other');
+                                setShowAddSheet(true);
+                              }}
+                              className="w-8 h-8 flex items-center justify-center bg-transparent border-0 cursor-pointer text-sm text-ink-70 hover:bg-ink-06 rounded transition-colors"
+                            >
+                              ✎
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteItem(item);
+                              }}
+                              className="w-8 h-8 flex items-center justify-center bg-transparent border-0 cursor-pointer text-sm"
+                              style={{ color: '#E8B8B8' }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <div
+                            className="w-5 h-5 rounded-full border-2 flex-shrink-0 transition-colors"
+                            style={{
+                              borderColor: item.ticked ? '#F4B5A0' : '#C7C3B8',
+                              background: item.ticked ? '#F4B5A0' : 'transparent',
+                            }}
+                          />
+                        )}
                       </div>
                     ))}
                   </div>
@@ -352,7 +348,15 @@ export default function ListDetailPage() {
       </div>
 
       {/* Floating Buttons */}
-      <div className="fixed bottom-5 inset-x-4 flex gap-2">
+      <div className="fixed bottom-5 inset-x-4 flex flex-col gap-2">
+        {tickedCount > 0 && mode === 'browse' && (
+          <button
+            onClick={() => setShowConfirmTrip(true)}
+            className="w-full py-3 bg-ink text-cream border-0 rounded-full font-bold text-base cursor-pointer hover:bg-ink-70 transition-colors"
+          >
+            סיימתי קניות · {tickedCount}
+          </button>
+        )}
         <button
           onClick={() => {
             setEditingItem(null);
@@ -361,18 +365,10 @@ export default function ListDetailPage() {
             setItemSection('other');
             setShowAddSheet(true);
           }}
-          className="flex-1 py-3 bg-accent text-ink border-0 rounded-full font-bold text-base cursor-pointer hover:bg-accent-dark transition-colors"
+          className="w-full py-3 bg-ink text-cream border-0 rounded-full font-bold text-base cursor-pointer hover:bg-ink-70 transition-colors"
         >
           + הוסף פריט
         </button>
-        {tickedCount > 0 && mode === 'browse' && (
-          <button
-            onClick={() => setShowConfirmTrip(true)}
-            className="flex-1 py-3 bg-yellow-500 text-ink border-0 rounded-full font-bold text-base cursor-pointer hover:bg-yellow-600 transition-colors"
-          >
-            סיימתי קניות
-          </button>
-        )}
       </div>
 
       {/* Add/Edit Modal */}

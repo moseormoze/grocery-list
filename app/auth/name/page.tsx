@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { createHousehold, createUserProfile } from '@/lib/supabase/auth';
+import { consumePendingInvite } from '@/lib/auth/pendingInvite';
 
 export default function NamePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,8 +16,16 @@ export default function NamePage() {
   const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get current user from Supabase session
     const checkUser = async () => {
+      const inviteFromUrl = searchParams?.get('invite') ?? null;
+      const inviteFromStorage = consumePendingInvite();
+      const pendingInvite = inviteFromUrl ?? inviteFromStorage;
+
+      if (pendingInvite) {
+        router.replace(`/invite/${pendingInvite}`);
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
@@ -26,7 +36,7 @@ export default function NamePage() {
     };
 
     checkUser();
-  }, [router]);
+  }, [router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

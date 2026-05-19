@@ -40,7 +40,7 @@ export default function InvitePage() {
 
   const generateInvite = async () => {
     if (!householdId) {
-      setError('Household not found');
+      setError('לא הצלחנו לזהות את משק הבית שלך. נסה להתחבר מחדש.');
       return;
     }
 
@@ -50,7 +50,7 @@ export default function InvitePage() {
     if (result.success) {
       setInviteUrl(result.inviteUrl || null);
     } else {
-      setError(result.error || 'Failed to generate invite');
+      setError(result.error || 'יצירת ההזמנה נכשלה.');
     }
 
     setLoading(false);
@@ -77,7 +77,7 @@ export default function InvitePage() {
       <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-6">
         <div className="text-center">
           <div className="text-4xl mb-4">⚠️</div>
-          <p className="text-ink-70">Household not found</p>
+          <p className="text-ink-70">לא הצלחנו לזהות את משק הבית שלך. נסה להתחבר מחדש.</p>
         </div>
       </div>
     );
@@ -88,7 +88,7 @@ export default function InvitePage() {
       <div className="w-full max-w-sm flex flex-col gap-8">
         <div className="flex flex-col gap-2 text-center">
           <div className="text-5xl">👥</div>
-          <h1 className="text-3xl font-bold">הזמן את השותף שלך</h1>
+          <h1 className="text-3xl font-bold">הזמן את השותפה שלך</h1>
           <p className="text-sm text-ink-70">שתפו קישור הזמנה כדי להתחיל יחד</p>
         </div>
 

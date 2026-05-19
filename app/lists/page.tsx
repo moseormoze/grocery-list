@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import type { List } from '@/lib/db/types';
 import { EmojiIcon } from '@/lib/icon-map';
-import { Settings, ChevronLeft, Trash2, MoreVertical } from 'lucide-react';
+import { Settings, ChevronLeft, Trash2 } from 'lucide-react';
 
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
   supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
@@ -51,10 +51,10 @@ function ListCard({ list, onOpen, ticked, total, onDelete }: { list: ListWithPro
   const type = listTypeNames[list.type];
   const pct = total ? Math.round((ticked / total) * 100) : 0;
   const [swipeX, setSwipeX] = useState(0);
-  const [showMenu, setShowMenu] = useState(false);
   const startX = useRef(0);
   const startTime = useRef(0);
   const isDragging = useRef(false);
+  const justFinishedDrag = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
@@ -71,136 +71,108 @@ function ListCard({ list, onOpen, ticked, total, onDelete }: { list: ListWithPro
     }
 
     if (isDragging.current) {
-      setSwipeX(Math.max(Math.min(diff, 0), -120));
+      // Allow swipe in both directions from any position
+      const newX = swipeX === 120 ? 120 + diff : diff;
+      setSwipeX(Math.max(0, Math.min(newX, 120)));
     }
   };
 
   const handleTouchEnd = () => {
     const timeDiff = Date.now() - startTime.current;
-    const distance = Math.abs(swipeX);
-    const velocity = distance / timeDiff; // pixels per millisecond
+    const velocity = swipeX / timeDiff;
 
-    // Fast swipe (velocity > 0.5px/ms) opens even if not fully dragged
-    // Otherwise, use 60px threshold
-    const shouldOpen = velocity > 0.5 || swipeX < -60;
+    const shouldOpen = velocity > 0.5 || swipeX > 60;
 
-    if (shouldOpen && swipeX < 0) {
-      setSwipeX(-120);
+    if (shouldOpen) {
+      setSwipeX(120);
     } else {
       setSwipeX(0);
+    }
+
+    if (isDragging.current) {
+      justFinishedDrag.current = true;
+      setTimeout(() => {
+        justFinishedDrag.current = false;
+      }, 200);
     }
     isDragging.current = false;
   };
 
-  return (
-    <div className="relative overflow-hidden rounded-xl">
-      {/* Delete background panel */}
-      <div className="absolute inset-0 bg-red-500 rounded-xl flex items-center justify-end pr-6">
-        <Trash2 size={24} className="text-white" />
-      </div>
+  const handleCardClick = () => {
+    if (justFinishedDrag.current) return;
+    if (swipeX > 0) {
+      setSwipeX(0);
+      return;
+    }
+    onOpen();
+  };
 
-      {/* Card content (swipeable) */}
+  return (
+    <div
+      className="relative overflow-hidden rounded-xl"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Red delete background (revealed when card slides right) */}
       <button
-        onClick={() => {
-          if (!isDragging.current) {
-            onOpen();
-          }
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
         }}
-        className="relative w-full bg-surface rounded-xl p-4 border-0 cursor-pointer shadow-card hover:shadow-modal text-right flex flex-col gap-3 font-inherit text-inherit color-inherit"
+        className="absolute inset-y-0 left-0 flex items-center justify-center bg-red-500 transition-opacity"
         style={{
-          transform: `translateX(${swipeX}px)`,
-          transition: isDragging.current ? 'none' : 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onPointerDown={(e) => {
-          if (!isDragging.current) {
-            (e.currentTarget as HTMLElement).style.transform = `translateX(${swipeX}px) scale(0.985)`;
-          }
-        }}
-        onPointerUp={(e) => {
-          (e.currentTarget as HTMLElement).style.transform = `translateX(${swipeX}px) scale(1)`;
-        }}
-        onPointerLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.transform = `translateX(${swipeX}px) scale(1)`;
+          width: `${Math.max(swipeX, 0)}px`,
+          opacity: swipeX > 0 ? 1 : 0,
+          pointerEvents: swipeX >= 120 ? 'auto' : 'none',
         }}
       >
-      <div className="flex items-start gap-3">
-        <div
-          className="w-14 h-14 rounded-lg flex items-center justify-center text-2xl flex-shrink-0"
-          style={{ background: type.tint }}
-        >
-          <EmojiIcon emoji={type.emoji} />
-        </div>
-        <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-          <div className="text-lg font-bold leading-tight truncate">{list.name}</div>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
-              style={{ background: type.tint, color: '#1C1B17' }}
-            >
-              <EmojiIcon emoji={type.emoji} />
-              {type.label}
-            </span>
-            <ProgressBadge ticked={ticked} total={total} />
+        {swipeX >= 60 && <Trash2 size={24} className="text-white" />}
+      </button>
+
+      {/* Card content */}
+      <button
+        onClick={handleCardClick}
+        className="relative w-full bg-surface rounded-xl p-4 border-0 cursor-pointer shadow-card text-right flex flex-col gap-3 font-inherit text-inherit color-inherit"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isDragging.current ? 'none' : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+        }}
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className="w-14 h-14 rounded-lg flex items-center justify-center text-2xl flex-shrink-0"
+            style={{ background: type.tint }}
+          >
+            <EmojiIcon emoji={type.emoji} />
           </div>
-          <div className="text-xs font-medium text-ink-50">{list.created_at ? new Date(list.created_at).toLocaleDateString('he-IL') : 'חדש'}</div>
-        </div>
-        <div className="flex items-center gap-2 mt-3">
-          <div className="relative">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowMenu(!showMenu);
-              }}
-              className="text-ink-30 hover:text-ink-50 transition-colors p-2"
-            >
-              <MoreVertical size={20} />
-            </button>
-            {showMenu && (
-              <div className="absolute top-full right-0 mt-2 bg-surface border border-ink-10 rounded-lg shadow-modal z-10 min-w-32">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowMenu(false);
-                    onDelete();
-                  }}
-                  className="w-full text-right px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2 justify-end border-0 bg-transparent font-inherit cursor-pointer"
-                >
-                  <Trash2 size={16} />
-                  מחק
-                </button>
-              </div>
-            )}
+          <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+            <div className="text-lg font-bold leading-tight truncate">{list.name}</div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
+                style={{ background: type.tint, color: '#1C1B17' }}
+              >
+                <EmojiIcon emoji={type.emoji} />
+                {type.label}
+              </span>
+              <ProgressBadge ticked={ticked} total={total} />
+            </div>
+            <div className="text-xs font-medium text-ink-50">{list.created_at ? new Date(list.created_at).toLocaleDateString('he-IL') : 'חדש'}</div>
           </div>
-          <div className="text-ink-30">
+          <div className="text-ink-30 mt-3">
             <ChevronLeft size={20} />
           </div>
         </div>
-      </div>
-      {total > 0 && ticked > 0 && (
-        <div className="h-1 rounded-full bg-ink-06 overflow-hidden">
-          <div
-            className="h-full bg-accent rounded-full transition-all"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      )}
+        {total > 0 && ticked > 0 && (
+          <div className="h-1 rounded-full bg-ink-06 overflow-hidden">
+            <div
+              className="h-full bg-accent rounded-full transition-all"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        )}
       </button>
-
-      {/* Delete button (only visible when fully swiped) */}
-      {swipeX <= -100 && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          className="absolute inset-0 bg-red-500 rounded-xl flex items-center justify-end pr-6"
-        >
-          <Trash2 size={24} className="text-white" />
-        </button>
-      )}
     </div>
   );
 }

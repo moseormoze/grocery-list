@@ -30,7 +30,7 @@ export default function ListDetailPage() {
   const params = useParams();
   const listId = params?.listId as string;
 
-  const { list, items, loading, error, updateOptimistically } = useList(listId);
+  const { list, items, loading, error, updateOptimistically, deleteOptimistically } = useList(listId);
   const [mode, setMode] = useState<'browse' | 'edit'>('browse');
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
@@ -128,11 +128,16 @@ export default function ListDetailPage() {
   };
 
   const handleDeleteItem = async (item: Item) => {
+    deleteOptimistically(item.id);
     await supabase.from('items').delete().eq('id', item.id);
   };
 
   const handleCompleteTrip = async () => {
     const tickedItems = items.filter((i) => i.ticked);
+    const itemIds = tickedItems.map((i) => i.id);
+
+    // Optimistically remove ticked items from state
+    itemIds.forEach((id) => deleteOptimistically(id));
 
     await supabase.from('list_snapshots').insert({
       list_id: listId,
@@ -140,7 +145,6 @@ export default function ListDetailPage() {
       created_at: new Date().toISOString(),
     });
 
-    const itemIds = tickedItems.map((i) => i.id);
     await supabase.from('items').delete().in('id', itemIds);
 
     setShowConfirmTrip(false);

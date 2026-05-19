@@ -23,7 +23,7 @@ export interface UseListState {
  * Automatically subscribes to changes and unsubscribes on unmount.
  * Supports optimistic updates via updateOptimistically.
  */
-export function useList(listId: string): UseListState & { updateOptimistically: (item: Item) => void } {
+export function useList(listId: string): UseListState & { updateOptimistically: (item: Item) => void; deleteOptimistically: (itemId: string) => void } {
   const [list, setList] = useState<List | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +43,11 @@ export function useList(listId: string): UseListState & { updateOptimistically: 
       }
       return [...prev, item];
     });
+  }, []);
+
+  // Optimistic delete: remove item from local state immediately
+  const deleteOptimistically = useCallback((itemId: string) => {
+    setItems((prev) => prev.filter((i) => i.id !== itemId));
   }, []);
 
   // Fetch initial list data
@@ -144,5 +149,6 @@ export function useList(listId: string): UseListState & { updateOptimistically: 
     error,
     refetch,
     updateOptimistically,
+    deleteOptimistically,
   };
 }

@@ -110,7 +110,11 @@ export function useList(listId: string): UseListState & { updateOptimistically: 
   const handleItemsChange = useCallback(
     (payload: RealtimePostgresChangesPayload<Item>) => {
       if (payload.eventType === 'INSERT') {
-        setItems((prev) => [...prev, payload.new]);
+        setItems((prev) => {
+          // Skip if item already exists (e.g., from optimistic update)
+          if (prev.some((i) => i.id === payload.new.id)) return prev;
+          return [...prev, payload.new];
+        });
       } else if (payload.eventType === 'UPDATE') {
         setItems((prev) =>
           prev.map((item) => (item.id === payload.new.id ? payload.new : item))

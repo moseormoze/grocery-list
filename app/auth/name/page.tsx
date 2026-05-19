@@ -101,9 +101,7 @@ export default function NamePage() {
           <button
             type="submit"
             disabled={loading}
-            className={`px-6 py-3 text-ink border-0 rounded-full text-base font-bold cursor-pointer transition-colors ${
-              loading ? 'bg-ink-10 cursor-not-allowed' : 'bg-accent hover:bg-accent-dark'
-            }`}
+            className="btn btn-accent w-full"
           >
             {loading ? 'יוצר...' : 'המשך'}
           </button>

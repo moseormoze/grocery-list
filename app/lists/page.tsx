@@ -249,7 +249,7 @@ export default function ListsPage() {
             </div>
             <h1 className="text-3xl font-bold leading-tight">הרשימות שלנו</h1>
           </div>
-          <button className="w-10 h-10 rounded-lg bg-ink-06 border-0 flex items-center justify-center cursor-pointer text-ink-70 text-lg hover:bg-ink-10 transition-colors">
+          <button className="icon-btn text-lg">
             ⚙︎
           </button>
         </div>
@@ -270,7 +270,7 @@ export default function ListsPage() {
             </div>
             <button
               onClick={() => setShowCreateSheet(true)}
-              className="px-6 py-3 bg-accent text-ink border-0 rounded-full font-bold text-base cursor-pointer hover:bg-accent-dark transition-colors"
+              className="btn btn-accent"
             >
               צור רשימה ראשונה
             </button>
@@ -302,7 +302,7 @@ export default function ListsPage() {
             <div className="flex items-center justify-between p-5 border-b border-ink-06">
               <button
                 onClick={() => setShowCreateSheet(false)}
-                className="bg-transparent border-0 font-inherit text-base text-ink-70 p-3 cursor-pointer hover:bg-ink-06 rounded transition-colors"
+                className="btn btn-ghost"
               >
                 ביטול
               </button>
@@ -313,7 +313,7 @@ export default function ListsPage() {
                     handleCreateList(new Event('submit') as any);
                   }
                 }}
-                className="bg-transparent border-0 font-bold text-base text-accent-dark p-3 cursor-pointer hover:bg-accent-bg rounded transition-colors"
+                className="btn btn-accent"
               >
                 צור
               </button>

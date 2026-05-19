@@ -24,12 +24,18 @@
 }
 
 @layer components {
-  /* Buttons - All 6 variants */
+  /* ─── BUTTONS - All 6 variants with all states ─── */
+
+  /* Base button */
   .btn {
     @apply min-h-12 px-6 rounded-full font-semibold text-base inline-flex items-center justify-center gap-2 cursor-pointer border-0 transition-all;
     letter-spacing: -0.01em;
+    font-weight: 600;
+    height: 50px;
+    min-height: 50px;
   }
 
+  /* Primary: ink bg, cream text */
   .btn-primary {
     @apply btn bg-ink text-cream;
   }
@@ -40,16 +46,19 @@
 
   .btn-primary:active:not(:disabled) {
     transform: scale(0.965);
+    transition: transform 120ms;
+  }
+
+  .btn-primary:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px #F4B5A0;
   }
 
   .btn-primary:disabled {
     @apply bg-ink-10 text-ink-30 cursor-not-allowed;
   }
 
-  .btn-primary:focus-visible {
-    box-shadow: 0 0 0 3px #F4B5A0;
-  }
-
+  /* Accent: sage (peach) bg, ink text */
   .btn-accent {
     @apply btn bg-accent text-ink;
   }
@@ -60,16 +69,19 @@
 
   .btn-accent:active:not(:disabled) {
     transform: scale(0.965);
+    transition: transform 120ms;
+  }
+
+  .btn-accent:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px #FBE5DC;
   }
 
   .btn-accent:disabled {
     @apply bg-ink-10 text-ink-30 cursor-not-allowed;
   }
 
-  .btn-accent:focus-visible {
-    box-shadow: 0 0 0 3px #FBE5DC;
-  }
-
+  /* Soft: ink-06 bg, ink text */
   .btn-soft {
     @apply btn bg-ink-06 text-ink;
   }
@@ -80,15 +92,22 @@
 
   .btn-soft:active:not(:disabled) {
     transform: scale(0.965);
+    transition: transform 120ms;
+  }
+
+  .btn-soft:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px #FBE5DC;
   }
 
   .btn-soft:disabled {
     @apply text-ink-30 cursor-not-allowed opacity-70;
   }
 
+  /* Outline: transparent bg, ink10 border, ink text */
   .btn-outline {
-    @apply btn bg-transparent text-ink border-2;
-    border-color: rgba(28,27,23,0.1);
+    @apply btn bg-transparent text-ink;
+    border: 1.5px solid rgba(28,27,23,0.1);
   }
 
   .btn-outline:hover:not(:disabled) {
@@ -97,12 +116,19 @@
 
   .btn-outline:active:not(:disabled) {
     transform: scale(0.965);
+    transition: transform 120ms;
+  }
+
+  .btn-outline:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px #FBE5DC;
   }
 
   .btn-outline:disabled {
     @apply text-ink-30 cursor-not-allowed opacity-70;
   }
 
+  /* Ghost: transparent, ink text */
   .btn-ghost {
     @apply btn bg-transparent text-ink;
   }
@@ -111,10 +137,21 @@
     @apply bg-ink-06;
   }
 
+  .btn-ghost:active:not(:disabled) {
+    transform: scale(0.965);
+    transition: transform 120ms;
+  }
+
+  .btn-ghost:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px #FBE5DC;
+  }
+
   .btn-ghost:disabled {
     @apply text-ink-30 cursor-not-allowed;
   }
 
+  /* Danger: terra bg, white text */
   .btn-danger {
     @apply btn bg-danger text-white;
   }
@@ -125,24 +162,57 @@
 
   .btn-danger:active:not(:disabled) {
     transform: scale(0.965);
+    transition: transform 120ms;
+  }
+
+  .btn-danger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(177,74,51,0.3);
   }
 
   .btn-danger:disabled {
     @apply bg-ink-10 text-ink-30 cursor-not-allowed;
   }
 
-  /* Cards */
-  .card {
-    @apply rounded-2xl p-4 bg-surface shadow-card;
+  /* ─── ICON BUTTONS - 44x44, 12px radius ─── */
+  .icon-btn {
+    @apply w-11 h-11 flex items-center justify-center bg-transparent border-0 cursor-pointer rounded transition-colors;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    color: rgba(28,27,23,0.7);
   }
 
-  /* Input fields */
+  .icon-btn:hover:not(:disabled) {
+    @apply bg-ink-06;
+  }
+
+  .icon-btn:active:not(:disabled) {
+    @apply bg-ink-10;
+  }
+
+  .icon-btn:disabled {
+    @apply text-ink-30 cursor-not-allowed;
+  }
+
+  .icon-btn.danger {
+    color: #B14A33;
+  }
+
+  .icon-btn.danger:hover:not(:disabled) {
+    @apply bg-red-50;
+  }
+
+  /* ─── TEXT FIELDS ─── */
   .input {
-    @apply px-4 bg-surface text-ink placeholder-ink-50 outline-none transition-colors;
+    width: 100%;
     height: 52px;
     padding: 0 16px;
     border-radius: 14px;
     border: 1.5px solid rgba(28,27,23,0.1);
+    @apply bg-surface text-ink placeholder-ink-50 outline-none transition-all;
+    font-family: inherit;
+    font-size: 17px;
   }
 
   .input:focus {
@@ -155,25 +225,145 @@
     border-color: rgba(28,27,23,0.1);
   }
 
-  /* Checkbox base styling */
-  .checkbox {
-    @apply cursor-pointer;
+  .input-label {
+    @apply text-xs font-bold text-ink-70 mb-2;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
   }
 
-  /* Icon button */
-  .icon-btn {
-    @apply w-11 h-11 flex items-center justify-center bg-transparent border-0 cursor-pointer rounded transition-colors;
+  /* ─── CHECKBOX ─── */
+  .checkbox-wrapper {
+    @apply w-11 h-11 flex items-center justify-center bg-transparent border-0 cursor-pointer p-0 transition-all;
+    width: 44px;
+    height: 44px;
   }
 
-  .icon-btn:hover {
-    @apply bg-ink-06;
+  .checkbox-circle {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.8px solid rgba(28,27,23,0.3);
+    @apply transition-all flex items-center justify-center;
+    transition: all 180ms;
   }
 
-  .icon-btn:active {
-    @apply bg-ink-10;
+  .checkbox-circle.checked {
+    background-color: #F4B5A0;
+    border-color: #F4B5A0;
   }
 
-  .icon-btn:disabled {
-    @apply text-ink-30 cursor-not-allowed;
+  .checkbox-circle.checked-hover {
+    transform: scale(1.03);
+  }
+
+  .checkbox-circle.unchecked-hover {
+    background-color: #FBE5DC;
+    border-color: #C77858;
+  }
+
+  .checkbox-circle.disabled {
+    opacity: 0.6;
+  }
+
+  /* ─── CARDS ─── */
+  .card {
+    @apply rounded-2xl p-4 bg-surface shadow-card;
+  }
+
+  /* ─── SECTION BANNER ─── */
+  .section-banner {
+    border-radius: 18px;
+    padding: 20px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .section-banner-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .section-banner-emoji {
+    font-size: 54px;
+    line-height: 1;
+    transform: translateY(2px) rotate(-6deg);
+    filter: drop-shadow(0 2px 0 rgba(0,0,0,0.04));
+  }
+
+  /* ─── BADGES ─── */
+  .badge {
+    @apply inline-flex items-center rounded-full text-xs font-bold transition-colors;
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+
+  .badge-quiet {
+    @apply bg-ink-06 text-ink-70;
+  }
+
+  .badge-active {
+    @apply bg-accent-bg text-accent-dark;
+  }
+
+  .badge-success {
+    background-color: #EDF2E8;
+    color: #46613F;
+  }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress-bar {
+    height: 8px;
+    border-radius: 999px;
+    @apply bg-ink-06 overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    @apply bg-accent rounded-full transition-all;
+    transition: width 350ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* ─── ITEM ROW ─── */
+  .item-row {
+    @apply flex items-center gap-1 min-h-14 px-2 py-1 cursor-pointer border-b border-ink-06 last:border-b-0 rounded-lg transition-all;
+    min-height: 56px;
+    padding: 4px 6px 4px 4px;
+  }
+
+  .item-row.edit-mode {
+    @apply bg-white rounded-lg;
+    background-color: #FBF8F1;
+    border-radius: 12px;
+  }
+
+  .item-row.ticked {
+    opacity: 0.5;
+  }
+
+  .item-name {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .item-name.ticked {
+    text-decoration: line-through;
+    text-decoration-thickness: 1.5px;
+    text-decoration-color: rgba(28,27,23,0.5);
+  }
+
+  .item-qty {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(28,27,23,0.5);
+  }
+
+  .item-qty.ticked {
+    text-decoration: line-through;
   }
 }

@@ -121,7 +121,7 @@ export default function InviteAcceptPage() {
         <p className="text-sm text-danger text-center mb-8 max-w-sm">{error}</p>
         <button
           onClick={() => router.push('/lists')}
-          className="px-6 py-3 bg-accent text-ink border-0 rounded-full font-bold cursor-pointer hover:bg-accent-dark transition-colors"
+          className="btn btn-accent"
         >
           חזור לבית
         </button>
@@ -161,9 +161,7 @@ export default function InviteAcceptPage() {
           <button
             type="submit"
             disabled={submitting}
-            className={`px-6 py-3 text-ink border-0 rounded-full text-base font-bold cursor-pointer transition-colors ${
-              submitting ? 'bg-ink-10 cursor-not-allowed' : 'bg-accent hover:bg-accent-dark'
-            }`}
+            className="btn btn-accent w-full"
           >
             {submitting ? 'מצטרף...' : 'קבל הזמנה'}
           </button>

@@ -102,9 +102,7 @@ export default function InvitePage() {
           <button
             onClick={generateInvite}
             disabled={loading}
-            className={`px-6 py-3 text-ink border-0 rounded-full text-base font-bold cursor-pointer transition-colors ${
-              loading ? 'bg-ink-10 cursor-not-allowed' : 'bg-accent hover:bg-accent-dark'
-            }`}
+            className="btn btn-accent w-full"
           >
             {loading ? 'יוצר...' : 'צור קישור הזמנה'}
           </button>
@@ -117,9 +115,7 @@ export default function InvitePage() {
               </code>
               <button
                 onClick={copyToClipboard}
-                className={`w-full px-4 py-3 border-0 rounded-full text-sm font-bold cursor-pointer transition-colors ${
-                  copied ? 'bg-green-100 text-green-800' : 'bg-accent text-ink hover:bg-accent-dark'
-                }`}
+                className="btn btn-soft w-full"
               >
                 {copied ? '✓ הועתק' : 'העתק'}
               </button>
@@ -127,7 +123,7 @@ export default function InvitePage() {
 
             <button
               onClick={() => setInviteUrl(null)}
-              className="py-3 bg-ink-06 border-0 rounded-full cursor-pointer text-base text-ink-70 font-bold hover:bg-ink-10 transition-colors"
+              className="btn btn-soft w-full"
             >
               צור קישור חדש
             </button>

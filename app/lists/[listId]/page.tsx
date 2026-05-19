@@ -193,7 +193,7 @@ export default function ListDetailPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => router.back()}
-            className="w-11 h-11 rounded-lg border-0 bg-transparent cursor-pointer text-xl p-0 hover:bg-ink-06 transition-colors flex items-center justify-center"
+            className="icon-btn text-xl"
           >
             ‹
           </button>
@@ -209,7 +209,7 @@ export default function ListDetailPage() {
           </div>
           <button
             onClick={() => setMode(mode === 'browse' ? 'edit' : 'browse')}
-            className="px-4 py-2 rounded-lg bg-ink-06 border-0 cursor-pointer text-sm font-semibold text-ink hover:bg-ink-10 transition-colors"
+            className="btn btn-soft text-sm px-4"
           >
             {mode === 'edit' ? 'בוצע' : 'ערוך'}
           </button>
@@ -439,7 +439,7 @@ export default function ListDetailPage() {
                                 setItemSection(item.section_id || 'other');
                                 setShowAddSheet(true);
                               }}
-                              className="w-11 h-11 flex items-center justify-center bg-transparent border-0 cursor-pointer text-ink-70 hover:bg-ink-06 rounded-md transition-colors"
+                              className="icon-btn"
                             >
                               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M14.5 4.5l5 5L8 21H3v-5L14.5 4.5z" />
@@ -451,8 +451,7 @@ export default function ListDetailPage() {
                                 e.stopPropagation();
                                 handleDeleteItem(item);
                               }}
-                              className="w-11 h-11 flex items-center justify-center bg-transparent border-0 cursor-pointer text-terra hover:bg-ink-06 rounded-md transition-colors"
-                              style={{ color: '#B14A33' }}
+                              className="icon-btn danger"
                             >
                               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                                 <polyline points="3 6 5 6 21 6" />
@@ -480,7 +479,7 @@ export default function ListDetailPage() {
         {tickedCount > 0 && mode === 'browse' && (
           <button
             onClick={() => setShowConfirmTrip(true)}
-            className="w-full py-3 bg-ink text-cream border-0 rounded-full font-bold text-base cursor-pointer hover:bg-ink-70 transition-colors"
+            className="btn btn-primary w-full"
           >
             סיימתי קניות · {tickedCount}
           </button>
@@ -493,7 +492,7 @@ export default function ListDetailPage() {
             setItemSection('other');
             setShowAddSheet(true);
           }}
-          className="w-full py-3 bg-ink text-cream border-0 rounded-full font-bold text-base cursor-pointer hover:bg-ink-70 transition-colors"
+          className={`btn w-full ${tickedCount > 0 && mode === 'browse' ? 'btn-soft' : 'btn-accent'}`}
         >
           + הוסף פריט
         </button>
@@ -503,20 +502,20 @@ export default function ListDetailPage() {
       {showAddSheet && (
         <div className="fixed inset-0 bg-black/40 flex items-end z-50">
           <div className="w-full bg-cream rounded-t-3xl shadow-sheet max-h-4/5 overflow-y-auto">
-            <div className="flex items-center justify-between p-5 border-b border-ink-06">
+            <div className="flex items-center justify-between p-5 border-b border-ink-06 gap-2">
               <button
                 onClick={() => setShowAddSheet(false)}
-                className="bg-transparent border-0 font-inherit text-base text-ink-70 p-3 cursor-pointer hover:bg-ink-06 rounded transition-colors"
+                className="btn btn-ghost text-sm"
               >
                 ביטול
               </button>
-              <h2 className="text-lg font-bold">{editingItem ? 'ערוך פריט' : 'הוסף פריט'}</h2>
+              <h2 className="text-lg font-bold flex-1 text-center">{editingItem ? 'ערוך פריט' : 'הוסף פריט'}</h2>
               <button
                 onClick={(e) => {
                   e.preventDefault();
                   handleAddItem(new Event('submit') as any);
                 }}
-                className="bg-transparent border-0 font-bold text-base text-accent-dark p-3 cursor-pointer hover:bg-accent-bg rounded transition-colors"
+                className="btn btn-accent text-sm"
               >
                 {editingItem ? 'עדכן' : 'הוסף'}
               </button>
@@ -576,13 +575,13 @@ export default function ListDetailPage() {
             <div className="flex gap-3">
               <button
                 onClick={handleCompleteTrip}
-                className="flex-1 py-3 bg-accent text-ink border-0 rounded-full cursor-pointer font-bold hover:bg-accent-dark transition-colors"
+                className="flex-1 btn btn-accent"
               >
                 כן, סיימתי
               </button>
               <button
                 onClick={() => setShowConfirmTrip(false)}
-                className="flex-1 py-3 bg-ink-06 text-ink border-0 rounded-full cursor-pointer font-bold hover:bg-ink-10 transition-colors"
+                className="flex-1 btn btn-soft"
               >
                 ביטול
               </button>

@@ -54,7 +54,7 @@ export default function SignUpPage() {
             setSent(false);
             setEmail('');
           }}
-          className="px-6 py-3 bg-ink-06 border-0 rounded-full cursor-pointer text-base font-bold text-ink-70 hover:bg-ink-10 transition-colors"
+          className="btn btn-soft"
         >
           חזור
         </button>
@@ -94,9 +94,7 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={loading}
-            className={`px-6 py-3 text-ink border-0 rounded-full text-base font-bold cursor-pointer transition-colors ${
-              loading ? 'bg-ink-10 cursor-not-allowed' : 'bg-accent hover:bg-accent-dark'
-            }`}
+            className="btn btn-accent w-full"
           >
             {loading ? 'שולח...' : 'שלח קישור התחברות'}
           </button>

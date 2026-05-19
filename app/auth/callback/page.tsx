@@ -64,7 +64,7 @@ export default function AuthCallback() {
         <p className="text-sm text-danger text-center mb-8 max-w-sm">{error}</p>
         <button
           onClick={() => router.push('/auth/signup')}
-          className="px-6 py-3 bg-accent text-ink border-0 rounded-full font-bold cursor-pointer hover:bg-accent-dark transition-colors"
+          className="btn btn-accent"
         >
           חזור להתחברות
         </button>

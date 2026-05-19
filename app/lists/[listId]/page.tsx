@@ -12,6 +12,12 @@ const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: strin
   house: { label: 'בית', emoji: '🏠', tint: '#F2E9D5' },
 };
 
+const PLACEHOLDERS_BY_TYPE: Record<'supermarket' | 'pharmacy' | 'house', { itemName: string; itemQty: string }> = {
+  supermarket: { itemName: 'למשל: עגבניות', itemQty: 'למשל: 1 ק״ג' },
+  pharmacy: { itemName: 'למשל: אספירין', itemQty: 'למשל: 1 קופסה' },
+  house: { itemName: 'למשל: צבע לקירות', itemQty: 'למשל: 2 ליטר' },
+};
+
 const SECTIONS_BY_TYPE: Record<'supermarket' | 'pharmacy' | 'house', Record<string, { name: string; emoji: string; tint: string; ink: string }>> = {
   supermarket: {
     produce: { name: 'ירקות ופירות', emoji: '🥬', tint: '#E8F1DD', ink: '#4F6E32' },
@@ -421,7 +427,7 @@ export default function ListDetailPage() {
                   type="text"
                   value={itemName}
                   onChange={(e) => setItemName(e.target.value)}
-                  placeholder="למשל: עגבניות"
+                  placeholder={PLACEHOLDERS_BY_TYPE[list.type].itemName}
                   className="input"
                   autoFocus
                 />
@@ -433,7 +439,7 @@ export default function ListDetailPage() {
                   type="text"
                   value={itemQty}
                   onChange={(e) => setItemQty(e.target.value)}
-                  placeholder="למשל: 1 ק״ג"
+                  placeholder={PLACEHOLDERS_BY_TYPE[list.type].itemQty}
                   className="input"
                 />
               </div>

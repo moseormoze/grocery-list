@@ -120,7 +120,6 @@ export default function ListsPage() {
   const [newListName, setNewListName] = useState('');
   const [newListType, setNewListType] = useState<'supermarket' | 'pharmacy' | 'house'>('supermarket');
   const [user, setUser] = useState<any>(null);
-  const [currentUserName, setCurrentUserName] = useState('');
   const [householdMembers, setHouseholdMembers] = useState<Array<{ name: string; emoji: string; bg: string }>>([]);
   const [items, setItems] = useState<Record<string, any[]>>({});
 
@@ -146,8 +145,6 @@ export default function ListsPage() {
           router.push('/auth/name');
           return;
         }
-
-        setCurrentUserName(userData.name);
 
         if (userData?.household_id) {
           const { data: householdUsersData } = await supabase

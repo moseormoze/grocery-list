@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useList } from '@/hooks/useList';
@@ -25,7 +25,6 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   ArrowRight,
-  Settings,
   GripVertical,
   Pencil,
   Trash2,

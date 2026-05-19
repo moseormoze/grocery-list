@@ -1,28 +1,54 @@
 import { supabase } from './client';
 import crypto from 'crypto';
 
-/**
- * Generate a unique invite token.
- */
 function generateToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
 
-/**
- * Hash a token for storage (never store plaintext).
- */
 function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
-/**
- * Create an invite link for a household.
- */
-export async function createInviteToken(householdId: string) {
+const VALIDATE_REASON_MESSAGES: Record<string, string> = {
+  NOT_FOUND: 'Invite token not found',
+  CONSUMED: 'This invite has already been used',
+  EXPIRED: 'Invite token has expired',
+};
+
+const CONSUME_REASON_MESSAGES: Record<string, string> = {
+  NOT_FOUND: 'Invite not found',
+  CONSUMED: 'Invite already consumed',
+  EXPIRED: 'Invite expired',
+};
+
+type RpcRow = {
+  household_id: string | null;
+  is_valid: boolean;
+  reason: string;
+};
+
+export type CreateInviteResult =
+  | { success: true; token: string; inviteUrl: string }
+  | { success: false; error: string };
+
+export type ValidateInviteResult =
+  | { success: true; data: { household_id: string | null } }
+  | { success: false; error: string };
+
+export type ConsumeInviteResult =
+  | { success: true; householdId: string | null }
+  | { success: false; error: string };
+
+function firstRow<T>(data: T | T[] | null): T | null {
+  if (data === null || data === undefined) return null;
+  return Array.isArray(data) ? (data[0] ?? null) : data;
+}
+
+export async function createInviteToken(householdId: string): Promise<CreateInviteResult> {
   try {
     const token = generateToken();
     const tokenHash = hashToken(token);
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const { error } = await supabase
       .from('invite_tokens')
@@ -38,7 +64,6 @@ export async function createInviteToken(householdId: string) {
       return { success: false, error: error.message };
     }
 
-    // Return the plaintext token (only time it's exposed)
     return {
       success: true,
       token,
@@ -49,76 +74,62 @@ export async function createInviteToken(householdId: string) {
   }
 }
 
-/**
- * Validate an invite token.
- */
-export async function validateInviteToken(token: string) {
+export async function validateInviteToken(token: string): Promise<ValidateInviteResult> {
   try {
     const tokenHash = hashToken(token);
 
-    const { data, error } = await supabase
-      .from('invite_tokens')
-      .select('*')
-      .eq('token_hash', tokenHash)
-      .single();
+    const { data, error } = await supabase.rpc('validate_invite_token', {
+      p_token_hash: tokenHash,
+    });
 
     if (error) {
-      return { success: false, error: 'Invite token not found' };
+      return { success: false, error: error.message };
     }
 
-    if (data.consumed_by_user_id) {
-      return { success: false, error: 'This invite has already been used' };
+    const row = firstRow<RpcRow>(data);
+    if (!row) {
+      return { success: false, error: VALIDATE_REASON_MESSAGES.NOT_FOUND };
     }
 
-    if (new Date(data.expires_at) < new Date()) {
-      return { success: false, error: 'Invite token has expired' };
+    if (!row.is_valid) {
+      return {
+        success: false,
+        error: VALIDATE_REASON_MESSAGES[row.reason] ?? 'Invalid invite token',
+      };
     }
 
-    return { success: true, data };
+    return { success: true, data: { household_id: row.household_id } };
   } catch (e) {
     return { success: false, error: String(e) };
   }
 }
 
-/**
- * Consume an invite token and add user to household.
- */
-export async function consumeInviteToken(token: string, userId: string) {
+export async function consumeInviteToken(token: string, userId: string): Promise<ConsumeInviteResult> {
   try {
     const tokenHash = hashToken(token);
 
-    // Get the invite token
-    const { data: inviteData, error: inviteError } = await supabase
-      .from('invite_tokens')
-      .select('*')
-      .eq('token_hash', tokenHash)
-      .single();
+    const { data, error } = await supabase.rpc('consume_invite_token', {
+      p_token_hash: tokenHash,
+      p_user_id: userId,
+    });
 
-    if (inviteError || !inviteData) {
-      return { success: false, error: 'Invite not found' };
+    if (error) {
+      return { success: false, error: error.message };
     }
 
-    if (inviteData.consumed_by_user_id) {
-      return { success: false, error: 'Invite already consumed' };
+    const row = firstRow<RpcRow>(data);
+    if (!row) {
+      return { success: false, error: CONSUME_REASON_MESSAGES.NOT_FOUND };
     }
 
-    if (new Date(inviteData.expires_at) < new Date()) {
-      return { success: false, error: 'Invite expired' };
+    if (!row.is_valid) {
+      return {
+        success: false,
+        error: CONSUME_REASON_MESSAGES[row.reason] ?? 'Invalid invite token',
+      };
     }
 
-    // Update invite token as consumed
-    const { error: updateError } = await supabase
-      .from('invite_tokens')
-      .update({ consumed_by_user_id: userId })
-      .eq('id', inviteData.id);
-
-    if (updateError) {
-      return { success: false, error: updateError.message };
-    }
-
-    // Add user to household
-    // (In a real app, you'd update user's household_id)
-    return { success: true, householdId: inviteData.household_id };
+    return { success: true, householdId: row.household_id };
   } catch (e) {
     return { success: false, error: String(e) };
   }

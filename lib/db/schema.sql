@@ -220,3 +220,80 @@ create policy "anyone can read cache"
 alter publication supabase_realtime add table public.items;
 alter publication supabase_realtime add table public.lists;
 alter publication supabase_realtime add table public.list_snapshots;
+
+-- Invite token RPCs
+-- These run with security definer so an authenticated invitee can validate and
+-- consume their own token before they've been linked to a household — at that
+-- point they have no row in public.users, so the row-level select policy on
+-- invite_tokens would otherwise lock them out. The functions look up by
+-- token_hash, which the caller cannot guess without already possessing the
+-- plaintext token, so bypassing RLS here is safe.
+create or replace function public.validate_invite_token(p_token_hash text)
+returns table (household_id uuid, is_valid boolean, reason text)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_token public.invite_tokens%rowtype;
+begin
+  select * into v_token from public.invite_tokens where token_hash = p_token_hash;
+
+  if not found then
+    return query select null::uuid, false, 'NOT_FOUND'::text;
+    return;
+  end if;
+
+  if v_token.consumed_by_user_id is not null then
+    return query select v_token.household_id, false, 'CONSUMED'::text;
+    return;
+  end if;
+
+  if v_token.expires_at < now() then
+    return query select v_token.household_id, false, 'EXPIRED'::text;
+    return;
+  end if;
+
+  return query select v_token.household_id, true, 'OK'::text;
+end;
+$$;
+
+create or replace function public.consume_invite_token(p_token_hash text, p_user_id uuid)
+returns table (household_id uuid, is_valid boolean, reason text)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_token public.invite_tokens%rowtype;
+begin
+  -- for update locks the row so two invitees racing the same token can't both win
+  select * into v_token from public.invite_tokens where token_hash = p_token_hash for update;
+
+  if not found then
+    return query select null::uuid, false, 'NOT_FOUND'::text;
+    return;
+  end if;
+
+  if v_token.consumed_by_user_id is not null then
+    return query select v_token.household_id, false, 'CONSUMED'::text;
+    return;
+  end if;
+
+  if v_token.expires_at < now() then
+    return query select v_token.household_id, false, 'EXPIRED'::text;
+    return;
+  end if;
+
+  update public.invite_tokens
+    set consumed_by_user_id = p_user_id
+    where id = v_token.id;
+
+  return query select v_token.household_id, true, 'OK'::text;
+end;
+$$;
+
+revoke execute on function public.validate_invite_token(text) from anon, public;
+revoke execute on function public.consume_invite_token(text, uuid) from anon, public;
+grant execute on function public.validate_invite_token(text) to authenticated;
+grant execute on function public.consume_invite_token(text, uuid) to authenticated;

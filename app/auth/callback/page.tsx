@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import { consumePendingInvite } from '@/lib/auth/pendingInvite';
+import { routeAfterCallback } from '@/lib/auth/routeAfterCallback';
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -11,20 +13,15 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        console.log('Checking authenticated user after Supabase redirect');
-
-        // Supabase already verified the token server-side and set the session
         const { data: { user } } = await supabase.auth.getUser();
 
+        const pendingInviteToken = consumePendingInvite();
+
         if (!user) {
-          console.error('No authenticated user found');
           setError('Authentication failed. Please try again.');
           return;
         }
 
-        console.log('User authenticated:', user.id);
-
-        // Check if user profile exists
         const { data: userProfile, error: profileError } = await supabase
           .from('users')
           .select('id')
@@ -32,21 +29,31 @@ export default function AuthCallback() {
           .single();
 
         if (profileError && profileError.code !== 'PGRST116') {
-          console.error('Profile lookup error:', profileError);
           setError(`Profile lookup failed: ${profileError.message}`);
           return;
         }
 
-        // If profile doesn't exist, redirect to name setup
-        if (!userProfile) {
-          console.log('No user profile, redirecting to /auth/name');
-          router.push('/auth/name');
-        } else {
-          console.log('User profile found, redirecting to /lists');
-          router.push('/lists');
+        const decision = routeAfterCallback({
+          hasUser: true,
+          hasProfile: !!userProfile,
+          pendingInviteToken,
+        });
+
+        switch (decision.kind) {
+          case 'invite':
+            router.push(`/invite/${decision.token}`);
+            break;
+          case 'name':
+            router.push('/auth/name');
+            break;
+          case 'lists':
+            router.push('/lists');
+            break;
+          case 'error':
+            setError('Authentication failed. Please try again.');
+            break;
         }
       } catch (error) {
-        console.error('Callback error:', error);
         setError(`Error: ${error instanceof Error ? error.message : String(error)}`);
       }
     };

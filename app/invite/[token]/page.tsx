@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { validateInviteToken, consumeInviteToken } from '@/lib/supabase/invites';
 import { createUserProfile } from '@/lib/supabase/auth';
+import { savePendingInvite } from '@/lib/auth/pendingInvite';
 
 export default function InviteAcceptPage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function InviteAcceptPage() {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
 
       if (!currentUser) {
-        // Not logged in - redirect to signup
+        savePendingInvite(token);
         router.push(`/auth/signup`);
         return;
       }

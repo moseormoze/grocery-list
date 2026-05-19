@@ -132,6 +132,14 @@ create policy "users can update their household lists"
     )
   );
 
+create policy "users can delete their household lists"
+  on public.lists for delete
+  using (
+    household_id in (
+      select household_id from public.users where id = auth.uid()
+    )
+  );
+
 -- RLS Policies: items
 create policy "users can view items in their lists"
   on public.items for select

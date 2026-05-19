@@ -1,10 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signUpWithEmail } from '@/lib/supabase/auth';
 
-export default function SignUpPage() {
+function SignUpFallback() {
+  return (
+    <div className="min-h-screen bg-cream flex items-center justify-center">
+      <div className="text-ink-70 font-medium">טוען...</div>
+    </div>
+  );
+}
+
+function SignUpInner() {
   const searchParams = useSearchParams();
   const inviteToken = searchParams?.get('invite') ?? undefined;
   const [email, setEmail] = useState('');
@@ -108,5 +116,13 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<SignUpFallback />}>
+      <SignUpInner />
+    </Suspense>
   );
 }

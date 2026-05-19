@@ -27,6 +27,18 @@ function AuthCallbackInner() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        // @supabase/ssr's createBrowserClient uses PKCE by default — magic-link
+        // redirects return with ?code=... and we have to exchange it for a session
+        // before getUser() can see one.
+        const code = searchParams?.get('code') ?? null;
+        if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeError) {
+            setError(`Exchange failed: ${exchangeError.message}`);
+            return;
+          }
+        }
+
         const { data: { user } } = await supabase.auth.getUser();
 
         const inviteFromUrl = searchParams?.get('invite') ?? null;

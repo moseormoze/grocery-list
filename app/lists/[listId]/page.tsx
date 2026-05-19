@@ -108,6 +108,7 @@ export default function ListDetailPage() {
         .single();
 
       if (!insertError && createdItem) {
+        updateOptimistically(createdItem);
         setItemName('');
         setItemQty('');
         setItemSection('other');

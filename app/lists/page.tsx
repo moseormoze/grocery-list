@@ -7,7 +7,7 @@ import type { List } from '@/lib/db/types';
 
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
   supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
-  pharmacy: { label: 'בית מרקחת', emoji: '💊', tint: '#E4EEF3' },
+  pharmacy: { label: 'פארם', emoji: '💊', tint: '#E4EEF3' },
   house: { label: 'בית', emoji: '🏠', tint: '#F2E9D5' },
 };
 

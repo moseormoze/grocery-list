@@ -8,13 +8,13 @@ import type { Item } from '@/lib/db/types';
 
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
   supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
-  pharmacy: { label: 'בית מרקחת', emoji: '💊', tint: '#E4EEF3' },
+  pharmacy: { label: 'פארם', emoji: '💊', tint: '#E4EEF3' },
   house: { label: 'בית', emoji: '🏠', tint: '#F2E9D5' },
 };
 
 const PLACEHOLDERS_BY_TYPE: Record<'supermarket' | 'pharmacy' | 'house', { itemName: string; itemQty: string }> = {
   supermarket: { itemName: 'למשל: עגבניות', itemQty: 'למשל: 1 ק״ג' },
-  pharmacy: { itemName: 'למשל: אספירין', itemQty: 'למשל: 1 קופסה' },
+  pharmacy: { itemName: 'למשל: פרסטמול', itemQty: 'למשל: 1 קופסה' },
   house: { itemName: 'למשל: צבע לקירות', itemQty: 'למשל: 2 ליטר' },
 };
 
@@ -33,11 +33,13 @@ const SECTIONS_BY_TYPE: Record<'supermarket' | 'pharmacy' | 'house', Record<stri
   },
   pharmacy: {
     medicines: { name: 'תרופות', emoji: '💊', tint: '#F7E2E8', ink: '#A24566' },
-    vitamins: { name: 'ויטמינים ומינרלים', emoji: '💉', tint: '#E7F1F7', ink: '#3B6C8C' },
+    vitamins: { name: 'ויטמינים ותוספי מזון', emoji: '💉', tint: '#E7F1F7', ink: '#3B6C8C' },
     pain_relief: { name: 'משכללי כאב', emoji: '🩹', tint: '#F6E0DA', ink: '#A0432F' },
-    bandages: { name: 'פד ותחבושות', emoji: '🩺', tint: '#DEEFEC', ink: '#3E7C76' },
-    creams: { name: 'קרמים ומשחות', emoji: '🧴', tint: '#FAE7CB', ink: '#A86220' },
-    hygiene: { name: 'יגיינה אישית', emoji: '🧼', tint: '#E8F1DD', ink: '#4F6E32' },
+    hygiene: { name: 'הגיינה אישית', emoji: '🧼', tint: '#E8F1DD', ink: '#4F6E32' },
+    beauty: { name: 'יופי וטיפול בעור', emoji: '💅', tint: '#FAE7CB', ink: '#A86220' },
+    cleaning: { name: 'מוצרי ניקוי', emoji: '🧽', tint: '#DEEFEC', ink: '#3E7C76' },
+    health_devices: { name: 'מכשירים בריאותיים', emoji: '🩺', tint: '#E0EBF2', ink: '#3D6580' },
+    bandages: { name: 'קשירות ותחבושות', emoji: '🏥', tint: '#F2E9D5', ink: '#8A6A2B' },
     other: { name: 'אחר', emoji: '📦', tint: '#ECEAE5', ink: '#5A554B' },
   },
   house: {

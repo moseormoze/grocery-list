@@ -105,6 +105,7 @@ describe('Database Schema', () => {
       expect(schemaContent).toContain('create policy "users can view household lists"');
       expect(schemaContent).toContain('create policy "users can create lists in their household"');
       expect(schemaContent).toContain('create policy "users can update their household lists"');
+      expect(schemaContent).toContain('create policy "users can delete their household lists"');
     });
 
     it('should define RLS policies for items (list access)', () => {

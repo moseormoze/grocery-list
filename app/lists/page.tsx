@@ -52,46 +52,68 @@ function ListCard({ list, onOpen, ticked, total, onDelete }: { list: ListWithPro
   const pct = total ? Math.round((ticked / total) * 100) : 0;
   const [swipeX, setSwipeX] = useState(0);
   const startX = useRef(0);
+  const isDragging = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
+    isDragging.current = false;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     const currentX = e.touches[0].clientX;
     const diff = currentX - startX.current;
-    if (diff < 0) {
-      setSwipeX(Math.max(diff, -100));
+
+    if (Math.abs(diff) > 5) {
+      isDragging.current = true;
+    }
+
+    if (isDragging.current && diff < 0) {
+      setSwipeX(Math.max(diff, -120));
     }
   };
 
   const handleTouchEnd = () => {
-    if (swipeX < -50) {
-      setSwipeX(-100);
+    if (swipeX < -60) {
+      setSwipeX(-120);
     } else {
       setSwipeX(0);
     }
+    isDragging.current = false;
   };
 
   return (
-    <div
-      className="relative overflow-hidden rounded-xl"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="relative overflow-hidden rounded-xl">
+      {/* Delete background panel */}
+      <div className="absolute inset-0 bg-red-500 rounded-xl flex items-center justify-end pr-6">
+        <Trash2 size={24} className="text-white" />
+      </div>
+
+      {/* Card content (swipeable) */}
       <button
         onClick={() => {
-          if (swipeX === 0) onOpen();
+          if (!isDragging.current) {
+            onOpen();
+          }
         }}
-        className="w-full bg-surface rounded-xl p-4 border-0 cursor-pointer shadow-card hover:shadow-modal transition-all text-right flex flex-col gap-3 font-inherit text-inherit color-inherit"
+        className="relative w-full bg-surface rounded-xl p-4 border-0 cursor-pointer shadow-card hover:shadow-modal text-right flex flex-col gap-3 font-inherit text-inherit color-inherit"
         style={{
           transform: `translateX(${swipeX}px)`,
-          transition: swipeX === 0 || swipeX === -100 ? 'transform 0.3s ease-out' : 'none',
+          transition: isDragging.current ? 'none' : 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
         }}
-        onPointerDown={(e) => (e.currentTarget.style.transform = `translateX(${swipeX}px) scale(0.985)`)}
-        onPointerUp={(e) => (e.currentTarget.style.transform = `translateX(${swipeX}px) scale(1)`)}
-        onPointerLeave={(e) => (e.currentTarget.style.transform = `translateX(${swipeX}px) scale(1)`)}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onPointerDown={(e) => {
+          if (!isDragging.current) {
+            (e.currentTarget as HTMLElement).style.transform = `translateX(${swipeX}px) scale(0.985)`;
+          }
+        }}
+        onPointerUp={(e) => {
+          (e.currentTarget as HTMLElement).style.transform = `translateX(${swipeX}px) scale(1)`;
+        }}
+        onPointerLeave={(e) => {
+          (e.currentTarget as HTMLElement).style.transform = `translateX(${swipeX}px) scale(1)`;
+        }}
       >
       <div className="flex items-start gap-3">
         <div
@@ -127,12 +149,19 @@ function ListCard({ list, onOpen, ticked, total, onDelete }: { list: ListWithPro
         </div>
       )}
       </button>
-      <button
-        onClick={onDelete}
-        className="absolute inset-y-0 right-0 w-20 bg-red-500 flex items-center justify-center text-white hover:bg-red-600 transition-colors"
-      >
-        <Trash2 size={20} />
-      </button>
+
+      {/* Delete button (only visible when fully swiped) */}
+      {swipeX <= -100 && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="absolute inset-0 bg-red-500 rounded-xl flex items-center justify-end pr-6"
+        >
+          <Trash2 size={24} className="text-white" />
+        </button>
+      )}
     </div>
   );
 }

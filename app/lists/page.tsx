@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import type { List } from '@/lib/db/types';
 import { EmojiIcon } from '@/lib/icon-map';
 import { Settings, ChevronLeft, Trash2 } from 'lucide-react';
+import { InvitePartnerBanner } from '@/components/InvitePartnerBanner';
 
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
   supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
@@ -24,7 +25,7 @@ function MemberDot({ bg, emoji }: { bg: string; emoji: string }) {
       className="w-8 h-8 rounded-full flex items-center justify-center text-base"
       style={{ background: bg, boxShadow: '0 0 0 2.5px #fff' }}
     >
-      {emoji}
+      <EmojiIcon emoji={emoji} />
     </div>
   );
 }
@@ -234,12 +235,13 @@ export default function ListsPage() {
           const { data: householdUsersData } = await supabase
             .from('users')
             .select('name')
-            .eq('household_id', userData.household_id);
+            .eq('household_id', userData.household_id)
+            .order('created_at', { ascending: true });
 
           const memberColors = ['#C7D8BB', '#F2C9B1', '#E8C4B8', '#D4E5D8'];
           const members = householdUsersData?.map((u, i) => ({
             name: u.name,
-            emoji: i === 0 ? '🧑' : '👩',
+            emoji: i === 0 ? '👨' : '👩',
             bg: memberColors[i % memberColors.length],
           })) || [];
           setHouseholdMembers(members);
@@ -390,6 +392,9 @@ export default function ListsPage() {
             <Settings size={20} />
           </button>
         </div>
+        {householdMembers.length === 1 && (
+          <InvitePartnerBanner onTap={() => router.push('/invite')} />
+        )}
       </div>
 
       {/* Body */}

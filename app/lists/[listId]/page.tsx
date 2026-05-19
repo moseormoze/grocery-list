@@ -336,7 +336,7 @@ export default function ListDetailPage() {
             {item.qty && (
               <div
                 className={`item-qty ${item.ticked ? 'ticked' : ''}`}
-                dir="auto"
+                dir="rtl"
               >
                 {item.qty}
               </div>

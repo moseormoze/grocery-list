@@ -12,7 +12,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'רשימת קניות',
-  description: 'רשימת קניות משותפת בזמן אמת עם סנכרון עוה״ד',
+  description: 'רשימת קניות משותפת בזמן אמת',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,

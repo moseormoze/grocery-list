@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useList } from '@/hooks/useList';
-import { useSwipe } from '@/hooks/useSwipe';
 import type { Item } from '@/lib/db/types';
 
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
@@ -66,6 +65,8 @@ export default function ListDetailPage() {
   const [itemSection, setItemSection] = useState('other');
   const [showConfirmTrip, setShowConfirmTrip] = useState(false);
   const [swipedItemId, setSwipedItemId] = useState<string | null>(null);
+  const touchStartRef = useRef(0);
+  const touchEndRef = useRef(0);
 
   if (loading) {
     return (
@@ -287,10 +288,20 @@ export default function ListDetailPage() {
                   <div className="flex flex-col">
                     {sectionItems.map((item) => {
                       const isSwipped = swipedItemId === item.id;
-                      const { handleTouchStart, handleTouchEnd } = useSwipe({
-                        threshold: 50,
-                        onSwipeLeft: () => setSwipedItemId(item.id),
-                      });
+
+                      const handleTouchStart = (e: React.TouchEvent) => {
+                        touchStartRef.current = e.changedTouches[0].clientX;
+                      };
+
+                      const handleTouchEnd = (e: React.TouchEvent) => {
+                        touchEndRef.current = e.changedTouches[0].clientX;
+                        const distance = touchStartRef.current - touchEndRef.current;
+                        if (distance > 50) {
+                          setSwipedItemId(item.id);
+                        }
+                        touchStartRef.current = 0;
+                        touchEndRef.current = 0;
+                      };
 
                       return (
                       <div

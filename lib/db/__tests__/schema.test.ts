@@ -136,4 +136,56 @@ describe('Database Schema', () => {
       expect(schemaContent).toContain('alter publication supabase_realtime add table public.list_snapshots');
     });
   });
+
+  describe('Invite Token RPCs', () => {
+    it('should define validate_invite_token as a security-definer function', () => {
+      expect(schemaContent).toContain('create or replace function public.validate_invite_token');
+      const fnBody = schemaContent
+        .split('create or replace function public.validate_invite_token')[1]
+        ?.split('create or replace function')[0] ?? '';
+      expect(fnBody).toContain('security definer');
+    });
+
+    it('should define consume_invite_token as a security-definer function', () => {
+      expect(schemaContent).toContain('create or replace function public.consume_invite_token');
+      const fnBody = schemaContent
+        .split('create or replace function public.consume_invite_token')[1]
+        ?.split('create or replace function')[0] ?? '';
+      expect(fnBody).toContain('security definer');
+    });
+
+    it('should return household_id, is_valid, and reason from validate_invite_token', () => {
+      const fnBody = schemaContent
+        .split('create or replace function public.validate_invite_token')[1]
+        ?.split('create or replace function')[0] ?? '';
+      expect(fnBody).toContain('household_id');
+      expect(fnBody).toContain('is_valid');
+      expect(fnBody).toContain('reason');
+    });
+
+    it('should classify validation failures as NOT_FOUND, CONSUMED, or EXPIRED', () => {
+      const fnBody = schemaContent
+        .split('create or replace function public.validate_invite_token')[1]
+        ?.split('create or replace function')[0] ?? '';
+      expect(fnBody).toContain('NOT_FOUND');
+      expect(fnBody).toContain('CONSUMED');
+      expect(fnBody).toContain('EXPIRED');
+    });
+
+    it('should lock the row in consume_invite_token to prevent double-consume', () => {
+      const fnBody = schemaContent
+        .split('create or replace function public.consume_invite_token')[1]
+        ?.split('create or replace function')[0] ?? '';
+      expect(fnBody.toLowerCase()).toContain('for update');
+    });
+
+    it('should revoke execute from anon and grant to authenticated for both RPCs', () => {
+      expect(schemaContent).toContain('revoke execute on function public.validate_invite_token');
+      expect(schemaContent).toContain('revoke execute on function public.consume_invite_token');
+      expect(schemaContent).toContain('grant execute on function public.validate_invite_token');
+      expect(schemaContent).toContain('grant execute on function public.consume_invite_token');
+      expect(schemaContent).toContain('to authenticated');
+      expect(schemaContent).toContain('from anon');
+    });
+  });
 });

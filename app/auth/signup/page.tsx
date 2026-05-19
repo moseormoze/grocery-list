@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { signUpWithEmail } from '@/lib/supabase/auth';
 
 export default function SignUpPage() {
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams?.get('invite') ?? undefined;
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +31,7 @@ export default function SignUpPage() {
     }
 
     setLoading(true);
-    const result = await signUpWithEmail(email);
+    const result = await signUpWithEmail(email, inviteToken);
 
     if (!result.success) {
       setError(result.error || 'שגיאה בשליחת קישור');

@@ -55,6 +55,26 @@ describe('Auth Functions', () => {
       expect(result.success).toBe(false);
       expect(result.error).toBe('Invalid email');
     });
+
+    it('should append the invite token to emailRedirectTo when provided', async () => {
+      const mockSupabase = client.supabase as any;
+      mockSupabase.auth.signInWithOtp.mockResolvedValueOnce({ error: null });
+
+      await signUpWithEmail('test@example.com', 'invite-abc-123');
+
+      const callArgs = mockSupabase.auth.signInWithOtp.mock.calls.at(-1)[0];
+      expect(callArgs.options.emailRedirectTo).toMatch(/\/auth\/callback\?invite=invite-abc-123$/);
+    });
+
+    it('should omit the invite query when no token is provided', async () => {
+      const mockSupabase = client.supabase as any;
+      mockSupabase.auth.signInWithOtp.mockResolvedValueOnce({ error: null });
+
+      await signUpWithEmail('test@example.com');
+
+      const callArgs = mockSupabase.auth.signInWithOtp.mock.calls.at(-1)[0];
+      expect(callArgs.options.emailRedirectTo).not.toContain('invite=');
+    });
   });
 
   describe('verifyMagicLink', () => {

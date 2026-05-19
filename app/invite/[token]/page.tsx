@@ -34,7 +34,7 @@ export default function InviteAcceptPage() {
 
       if (!currentUser) {
         savePendingInvite(token);
-        router.push(`/auth/signup`);
+        router.push(`/auth/signup?invite=${encodeURIComponent(token)}`);
         return;
       }
 

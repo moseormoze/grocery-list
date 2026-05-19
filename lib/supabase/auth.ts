@@ -5,12 +5,16 @@ export interface SignUpResult {
   error?: string;
 }
 
-export async function signUpWithEmail(email: string): Promise<SignUpResult> {
+export async function signUpWithEmail(email: string, inviteToken?: string): Promise<SignUpResult> {
   try {
+    const callbackUrl = inviteToken
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?invite=${encodeURIComponent(inviteToken)}`
+      : `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`;
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+        emailRedirectTo: callbackUrl,
         shouldCreateUser: true,
       },
     });

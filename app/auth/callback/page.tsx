@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { consumePendingInvite } from '@/lib/auth/pendingInvite';
 import { routeAfterCallback } from '@/lib/auth/routeAfterCallback';
 
 export default function AuthCallback() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -15,7 +16,9 @@ export default function AuthCallback() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
 
-        const pendingInviteToken = consumePendingInvite();
+        const inviteFromUrl = searchParams?.get('invite') ?? null;
+        const inviteFromStorage = consumePendingInvite();
+        const pendingInviteToken = inviteFromUrl ?? inviteFromStorage;
 
         if (!user) {
           setError('Authentication failed. Please try again.');
@@ -59,7 +62,7 @@ export default function AuthCallback() {
     };
 
     handleCallback();
-  }, [router]);
+  }, [router, searchParams]);
 
   if (error) {
     return (

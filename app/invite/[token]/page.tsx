@@ -5,6 +5,16 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { validateInviteToken, consumeInviteToken } from '@/lib/supabase/invites';
 import { createUserProfile } from '@/lib/supabase/auth';
+import { savePendingInvite } from '@/lib/auth/pendingInvite';
+
+function translateInviteError(message: string | undefined): string {
+  if (!message) return 'הקישור לא תקף או שכבר נוצל.';
+  const m = message.toLowerCase();
+  if (m.includes('expired')) return 'פג תוקף ההזמנה. בקשי קישור חדש מהשותף שלך.';
+  if (m.includes('already')) return 'ההזמנה כבר נוצלה.';
+  if (m.includes('not found')) return 'הקישור לא תקף או שכבר נוצל.';
+  return message;
+}
 
 export default function InviteAcceptPage() {
   const router = useRouter();
@@ -23,17 +33,16 @@ export default function InviteAcceptPage() {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
 
       if (!currentUser) {
-        // Not logged in - redirect to signup
+        savePendingInvite(token);
         router.push(`/auth/signup`);
         return;
       }
 
       setUser(currentUser);
 
-      // Validate token
       const validation = await validateInviteToken(token);
       if (!validation.success) {
-        setError(validation.error || 'Invalid invite');
+        setError(translateInviteError(validation.error));
         setLoading(false);
         return;
       }
@@ -71,7 +80,7 @@ export default function InviteAcceptPage() {
     }
 
     if (!user || !householdId) {
-      setError('Missing user or household information');
+      setError('חסרים פרטי המשתמש או משק הבית.');
       return;
     }
 
@@ -79,10 +88,9 @@ export default function InviteAcceptPage() {
     setError(null);
 
     try {
-      // Consume the invite token
       const consumeResult = await consumeInviteToken(token, user.id);
       if (!consumeResult.success) {
-        setError(consumeResult.error || 'Failed to accept invite');
+        setError(translateInviteError(consumeResult.error));
         setSubmitting(false);
         return;
       }
@@ -90,15 +98,14 @@ export default function InviteAcceptPage() {
       // Create user profile with the partner's household
       const profileResult = await createUserProfile(user.id, user.email || '', name, householdId);
       if (!profileResult.success) {
-        setError(profileResult.error || 'Failed to create profile');
+        setError(profileResult.error || 'יצירת הפרופיל נכשלה.');
         setSubmitting(false);
         return;
       }
 
-      // Redirect to lists
       router.push('/lists');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'אירעה שגיאה.');
       setSubmitting(false);
     }
   };
@@ -134,18 +141,18 @@ export default function InviteAcceptPage() {
       <div className="w-full max-w-sm flex flex-col gap-8">
         <div className="flex flex-col gap-2 text-center">
           <div className="text-5xl">👋</div>
-          <h1 className="text-3xl font-bold">הצטרף לרשימה</h1>
-          <p className="text-sm text-ink-70">היוו חלק מהרשימה המשותפת</p>
+          <h1 className="text-3xl font-bold">הצטרפי לרשימה</h1>
+          <p className="text-sm text-ink-70">ברגע שתאשרי, תופיעי ברשימה המשותפת.</p>
         </div>
 
         <form onSubmit={handleAcceptInvite} className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-ink-70">שם מלא</label>
+            <label className="text-xs font-bold text-ink-70">השם שלך</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="שם שלך"
+              placeholder="למשל: רעות"
               disabled={submitting}
               dir="auto"
               className="input"
@@ -163,7 +170,7 @@ export default function InviteAcceptPage() {
             disabled={submitting}
             className="btn btn-accent w-full"
           >
-            {submitting ? 'מצטרף...' : 'קבל הזמנה'}
+            {submitting ? 'מצטרפת...' : 'הצטרפי'}
           </button>
         </form>
       </div>

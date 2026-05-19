@@ -14,7 +14,7 @@ const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: strin
 
 const PLACEHOLDERS_BY_TYPE: Record<'supermarket' | 'pharmacy' | 'house', { itemName: string; itemQty: string }> = {
   supermarket: { itemName: 'למשל: עגבניות', itemQty: 'למשל: 1 ק״ג' },
-  pharmacy: { itemName: 'למשל: פרסטמול', itemQty: 'למשל: 1 קופסה' },
+  pharmacy: { itemName: 'למשל: משחת שיניים', itemQty: 'למשל: 1 יחידה' },
   house: { itemName: 'למשל: צבע לקירות', itemQty: 'למשל: 2 ליטר' },
 };
 
@@ -32,14 +32,12 @@ const SECTIONS_BY_TYPE: Record<'supermarket' | 'pharmacy' | 'house', Record<stri
     other: { name: 'אחר', emoji: '📦', tint: '#ECEAE5', ink: '#5A554B' },
   },
   pharmacy: {
-    medicines: { name: 'תרופות', emoji: '💊', tint: '#F7E2E8', ink: '#A24566' },
-    vitamins: { name: 'ויטמינים ותוספי מזון', emoji: '💉', tint: '#E7F1F7', ink: '#3B6C8C' },
-    pain_relief: { name: 'משכללי כאב', emoji: '🩹', tint: '#F6E0DA', ink: '#A0432F' },
-    hygiene: { name: 'הגיינה אישית', emoji: '🧼', tint: '#E8F1DD', ink: '#4F6E32' },
-    beauty: { name: 'יופי וטיפול בעור', emoji: '💅', tint: '#FAE7CB', ink: '#A86220' },
+    hygiene: { name: 'הגיינה', emoji: '🧼', tint: '#E8F1DD', ink: '#4F6E32' },
     cleaning: { name: 'מוצרי ניקוי', emoji: '🧽', tint: '#DEEFEC', ink: '#3E7C76' },
-    health_devices: { name: 'מכשירים בריאותיים', emoji: '🩺', tint: '#E0EBF2', ink: '#3D6580' },
-    bandages: { name: 'קשירות ותחבושות', emoji: '🏥', tint: '#F2E9D5', ink: '#8A6A2B' },
+    cosmetics: { name: 'קוסמטיקה', emoji: '💅', tint: '#FAE7CB', ink: '#A86220' },
+    paper: { name: 'מוצרי נייר', emoji: '🧻', tint: '#E0EBF2', ink: '#3D6580' },
+    medicine_cabinet: { name: 'מזווה', emoji: '🏥', tint: '#F7E2E8', ink: '#A24566' },
+    pharmacy_medicines: { name: 'בית מרקחת ותרופות', emoji: '💊', tint: '#E7F1F7', ink: '#3B6C8C' },
     other: { name: 'אחר', emoji: '📦', tint: '#ECEAE5', ink: '#5A554B' },
   },
   house: {
@@ -288,9 +286,11 @@ export default function ListDetailPage() {
                     {sectionItems.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center gap-2 min-h-14 px-2 py-1 cursor-pointer border-b border-ink-06 last:border-b-0 rounded-lg transition-opacity"
+                        className="flex items-center gap-1 min-h-14 px-2 py-1 cursor-pointer border-b border-ink-06 last:border-b-0 rounded-lg transition-all"
                         style={{
                           opacity: !mode && item.ticked ? 0.5 : 1,
+                          backgroundColor: mode === 'edit' ? '#FBF8F1' : 'transparent',
+                          borderRadius: mode === 'edit' ? '12px' : '0px',
                         }}
                         onClick={() => {
                           if (mode === 'edit') {
@@ -304,14 +304,56 @@ export default function ListDetailPage() {
                           }
                         }}
                       >
+                        {mode === 'edit' ? (
+                          <div className="w-11 h-11 flex items-center justify-center flex-shrink-0 text-ink-30">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="9" cy="6" r="0.5" />
+                              <circle cx="15" cy="6" r="0.5" />
+                              <circle cx="9" cy="12" r="0.5" />
+                              <circle cx="15" cy="12" r="0.5" />
+                              <circle cx="9" cy="18" r="0.5" />
+                              <circle cx="15" cy="18" r="0.5" />
+                            </svg>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleTickItem(item);
+                            }}
+                            className="w-11 h-11 flex items-center justify-center flex-shrink-0 bg-transparent border-0 cursor-pointer p-0 transition-all"
+                            style={{
+                              borderRadius: '50%',
+                            }}
+                          >
+                            <div
+                              className="w-26 h-26 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all"
+                              style={{
+                                width: '26px',
+                                height: '26px',
+                                borderColor: item.ticked ? '#F4B5A0' : 'rgba(28,27,23,0.3)',
+                                background: item.ticked ? '#F4B5A0' : 'transparent',
+                                borderWidth: '1.8px',
+                              }}
+                            >
+                              {item.ticked && (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              )}
+                            </div>
+                          </button>
+                        )}
+
                         <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                           <div
-                            className="text-base font-semibold leading-snug"
+                            className="text-base font-semibold leading-snug transition-all"
                             style={{
                               textDecoration: item.ticked && mode !== 'edit' ? 'line-through' : 'none',
                               textDecorationThickness: '1.5px',
-                              textDecorationColor: item.ticked ? '#1C1B17' : 'transparent',
+                              textDecorationColor: item.ticked ? 'rgba(28,27,23,0.5)' : 'transparent',
                               color: '#1C1B17',
+                              transition: 'all 250ms',
                             }}
                             dir="auto"
                           >
@@ -319,9 +361,11 @@ export default function ListDetailPage() {
                           </div>
                           {item.qty && (
                             <div
-                              className="text-xs text-ink-50 font-medium"
+                              className="text-xs font-medium transition-all"
                               style={{
+                                color: 'rgba(28,27,23,0.5)',
                                 textDecoration: item.ticked && mode !== 'edit' ? 'line-through' : 'none',
+                                transition: 'all 250ms',
                               }}
                               dir="auto"
                             >
@@ -330,8 +374,8 @@ export default function ListDetailPage() {
                           )}
                         </div>
 
-                        {mode === 'edit' ? (
-                          <div className="flex items-center gap-1 flex-shrink-0">
+                        {mode === 'edit' && (
+                          <div className="flex items-center gap-0 flex-shrink-0">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -341,29 +385,29 @@ export default function ListDetailPage() {
                                 setItemSection(item.section_id || 'other');
                                 setShowAddSheet(true);
                               }}
-                              className="w-8 h-8 flex items-center justify-center bg-transparent border-0 cursor-pointer text-sm text-ink-70 hover:bg-ink-06 rounded transition-colors"
+                              className="w-11 h-11 flex items-center justify-center bg-transparent border-0 cursor-pointer text-ink-70 hover:bg-ink-06 rounded-md transition-colors"
                             >
-                              ✎
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M14.5 4.5l5 5L8 21H3v-5L14.5 4.5z" />
+                                <path d="M13 6l5 5" />
+                              </svg>
                             </button>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDeleteItem(item);
                               }}
-                              className="w-8 h-8 flex items-center justify-center bg-transparent border-0 cursor-pointer text-sm"
-                              style={{ color: '#E8B8B8' }}
+                              className="w-11 h-11 flex items-center justify-center bg-transparent border-0 cursor-pointer text-terra hover:bg-ink-06 rounded-md transition-colors"
+                              style={{ color: '#B14A33' }}
                             >
-                              ✕
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                <line x1="10" y1="11" x2="10" y2="17" />
+                                <line x1="14" y1="11" x2="14" y2="17" />
+                              </svg>
                             </button>
                           </div>
-                        ) : (
-                          <div
-                            className="w-5 h-5 rounded-full border-2 flex-shrink-0 transition-colors"
-                            style={{
-                              borderColor: item.ticked ? '#F4B5A0' : '#C7C3B8',
-                              background: item.ticked ? '#F4B5A0' : 'transparent',
-                            }}
-                          />
                         )}
                       </div>
                     ))}

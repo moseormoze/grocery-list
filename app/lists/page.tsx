@@ -35,7 +35,7 @@ function ProgressBadge({ ticked, total }: { ticked: number; total: number }) {
     return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-ink-06 text-ink-70">{total} פריטים</span>;
   }
   if (ticked === total) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">הכל בעגלה</span>;
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold" style={{ background: '#EDF2E8', color: '#46613F' }}>הכל בעגלה</span>;
   }
   return (
     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-accent-bg text-accent-dark">

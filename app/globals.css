@@ -24,21 +24,111 @@
 }
 
 @layer components {
-  /* Buttons */
+  /* Buttons - All 6 variants */
   .btn {
     @apply min-h-12 px-6 rounded-full font-semibold text-base inline-flex items-center justify-center gap-2 cursor-pointer border-0 transition-all;
+    letter-spacing: -0.01em;
   }
 
   .btn-primary {
-    @apply btn bg-accent text-ink hover:bg-accent-dark;
+    @apply btn bg-ink text-cream;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    filter: brightness(0.96);
+  }
+
+  .btn-primary:active:not(:disabled) {
+    transform: scale(0.965);
+  }
+
+  .btn-primary:disabled {
+    @apply bg-ink-10 text-ink-30 cursor-not-allowed;
+  }
+
+  .btn-primary:focus-visible {
+    box-shadow: 0 0 0 3px #F4B5A0;
+  }
+
+  .btn-accent {
+    @apply btn bg-accent text-ink;
+  }
+
+  .btn-accent:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+
+  .btn-accent:active:not(:disabled) {
+    transform: scale(0.965);
+  }
+
+  .btn-accent:disabled {
+    @apply bg-ink-10 text-ink-30 cursor-not-allowed;
+  }
+
+  .btn-accent:focus-visible {
+    box-shadow: 0 0 0 3px #FBE5DC;
   }
 
   .btn-soft {
-    @apply btn bg-ink-06 text-ink hover:bg-ink-10;
+    @apply btn bg-ink-06 text-ink;
+  }
+
+  .btn-soft:hover:not(:disabled) {
+    @apply bg-ink-10;
+  }
+
+  .btn-soft:active:not(:disabled) {
+    transform: scale(0.965);
+  }
+
+  .btn-soft:disabled {
+    @apply text-ink-30 cursor-not-allowed opacity-70;
+  }
+
+  .btn-outline {
+    @apply btn bg-transparent text-ink border-2;
+    border-color: rgba(28,27,23,0.1);
+  }
+
+  .btn-outline:hover:not(:disabled) {
+    @apply bg-ink-06;
+  }
+
+  .btn-outline:active:not(:disabled) {
+    transform: scale(0.965);
+  }
+
+  .btn-outline:disabled {
+    @apply text-ink-30 cursor-not-allowed opacity-70;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-ink;
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    @apply bg-ink-06;
+  }
+
+  .btn-ghost:disabled {
+    @apply text-ink-30 cursor-not-allowed;
   }
 
   .btn-danger {
-    @apply btn bg-danger text-white hover:bg-red-700;
+    @apply btn bg-danger text-white;
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    filter: brightness(0.96);
+  }
+
+  .btn-danger:active:not(:disabled) {
+    transform: scale(0.965);
+  }
+
+  .btn-danger:disabled {
+    @apply bg-ink-10 text-ink-30 cursor-not-allowed;
   }
 
   /* Cards */
@@ -48,10 +138,42 @@
 
   /* Input fields */
   .input {
-    @apply h-12 px-4 rounded-lg border border-ink-10 bg-surface text-ink placeholder-ink-50 outline-none transition-colors;
+    @apply px-4 bg-surface text-ink placeholder-ink-50 outline-none transition-colors;
+    height: 52px;
+    padding: 0 16px;
+    border-radius: 14px;
+    border: 1.5px solid rgba(28,27,23,0.1);
   }
 
   .input:focus {
-    @apply border-accent;
+    border-color: #F4B5A0;
+    box-shadow: 0 0 0 3px #FBE5DC;
+  }
+
+  .input:disabled {
+    @apply bg-ink-06 text-ink-30 cursor-not-allowed;
+    border-color: rgba(28,27,23,0.1);
+  }
+
+  /* Checkbox base styling */
+  .checkbox {
+    @apply cursor-pointer;
+  }
+
+  /* Icon button */
+  .icon-btn {
+    @apply w-11 h-11 flex items-center justify-center bg-transparent border-0 cursor-pointer rounded transition-colors;
+  }
+
+  .icon-btn:hover {
+    @apply bg-ink-06;
+  }
+
+  .icon-btn:active {
+    @apply bg-ink-10;
+  }
+
+  .icon-btn:disabled {
+    @apply text-ink-30 cursor-not-allowed;
   }
 }

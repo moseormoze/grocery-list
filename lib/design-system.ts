@@ -189,7 +189,7 @@ export const listTypes = {
   },
   pharmacy: {
     id: 'pharmacy',
-    label: 'בית מרקחת',
+    label: 'פארם',
     emoji: '💊',
     tint: colors.listTypes.pharmacy,
   },

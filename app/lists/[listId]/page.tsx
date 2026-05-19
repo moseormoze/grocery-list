@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useList } from '@/hooks/useList';
+import { useSwipe } from '@/hooks/useSwipe';
 import type { Item } from '@/lib/db/types';
 
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
@@ -64,6 +65,7 @@ export default function ListDetailPage() {
   const [itemQty, setItemQty] = useState('');
   const [itemSection, setItemSection] = useState('other');
   const [showConfirmTrip, setShowConfirmTrip] = useState(false);
+  const [swipedItemId, setSwipedItemId] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -283,27 +285,68 @@ export default function ListDetailPage() {
 
                   {/* Section Items */}
                   <div className="flex flex-col">
-                    {sectionItems.map((item) => (
+                    {sectionItems.map((item) => {
+                      const isSwipped = swipedItemId === item.id;
+                      const { handleTouchStart, handleTouchEnd } = useSwipe({
+                        threshold: 50,
+                        onSwipeLeft: () => setSwipedItemId(item.id),
+                      });
+
+                      return (
                       <div
                         key={item.id}
-                        className="flex items-center gap-1 min-h-14 px-2 py-1 cursor-pointer border-b border-ink-06 last:border-b-0 rounded-lg transition-all"
-                        style={{
-                          opacity: !mode && item.ticked ? 0.5 : 1,
-                          backgroundColor: mode === 'edit' ? '#FBF8F1' : 'transparent',
-                          borderRadius: mode === 'edit' ? '12px' : '0px',
-                        }}
-                        onClick={() => {
-                          if (mode === 'edit') {
-                            setEditingItem(item);
-                            setItemName(item.name);
-                            setItemQty(item.qty || '');
-                            setItemSection(item.section_id || 'other');
-                            setShowAddSheet(true);
-                          } else {
-                            handleTickItem(item);
-                          }
-                        }}
+                        className="relative overflow-hidden rounded-lg"
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
                       >
+                        {/* Swipe-to-delete panel */}
+                        {isSwipped && mode === 'browse' && (
+                          <div
+                            className="absolute inset-0 flex items-center justify-center gap-2 px-4"
+                            style={{
+                              background: '#B14A33',
+                              zIndex: 10,
+                              width: '110px',
+                              right: 0,
+                            }}
+                          >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              <line x1="10" y1="11" x2="10" y2="17" />
+                              <line x1="14" y1="11" x2="14" y2="17" />
+                            </svg>
+                            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}>מחיקה</span>
+                          </div>
+                        )}
+
+                        {/* Item row */}
+                        <div
+                          className="flex items-center gap-1 min-h-14 px-2 py-1 cursor-pointer border-b border-ink-06 last:border-b-0 transition-all bg-cream"
+                          style={{
+                            opacity: !mode && item.ticked ? 0.5 : 1,
+                            backgroundColor: mode === 'edit' ? '#FBF8F1' : 'transparent',
+                            borderRadius: mode === 'edit' ? '12px' : '0px',
+                            transform: isSwipped ? 'translateX(110px)' : 'translateX(0)',
+                            transition: 'transform 200ms',
+                          }}
+                          onClick={() => {
+                            if (isSwipped) {
+                              handleDeleteItem(item);
+                              setSwipedItemId(null);
+                              return;
+                            }
+                            if (mode === 'edit') {
+                              setEditingItem(item);
+                              setItemName(item.name);
+                              setItemQty(item.qty || '');
+                              setItemSection(item.section_id || 'other');
+                              setShowAddSheet(true);
+                            } else {
+                              handleTickItem(item);
+                            }
+                          }}
+                        >
                         {mode === 'edit' ? (
                           <div className="w-11 h-11 flex items-center justify-center flex-shrink-0 text-ink-30">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -409,8 +452,10 @@ export default function ListDetailPage() {
                             </button>
                           </div>
                         )}
+                        </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               );

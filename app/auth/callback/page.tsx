@@ -1,12 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { consumePendingInvite } from '@/lib/auth/pendingInvite';
 import { routeAfterCallback } from '@/lib/auth/routeAfterCallback';
 
-export default function AuthCallback() {
+function AuthCallbackFallback() {
+  return (
+    <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-6">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-16 h-16 rounded-full bg-accent-bg flex items-center justify-center text-3xl animate-pulse">
+          ✓
+        </div>
+        <p className="text-ink-70 font-medium">מאומת...</p>
+      </div>
+    </div>
+  );
+}
+
+function AuthCallbackInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -82,14 +95,13 @@ export default function AuthCallback() {
     );
   }
 
+  return <AuthCallbackFallback />;
+}
+
+export default function AuthCallback() {
   return (
-    <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-6">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-16 h-16 rounded-full bg-accent-bg flex items-center justify-center text-3xl animate-pulse">
-          ✓
-        </div>
-        <p className="text-ink-70 font-medium">מאומת...</p>
-      </div>
-    </div>
+    <Suspense fallback={<AuthCallbackFallback />}>
+      <AuthCallbackInner />
+    </Suspense>
   );
 }

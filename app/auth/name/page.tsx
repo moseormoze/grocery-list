@@ -1,12 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { createHousehold, createUserProfile } from '@/lib/supabase/auth';
 import { consumePendingInvite } from '@/lib/auth/pendingInvite';
 
-export default function NamePage() {
+function NamePageFallback() {
+  return (
+    <div className="min-h-screen bg-cream flex items-center justify-center">
+      <div className="text-ink-70 font-medium">טוען...</div>
+    </div>
+  );
+}
+
+function NamePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [name, setName] = useState('');
@@ -118,5 +126,13 @@ export default function NamePage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function NamePage() {
+  return (
+    <Suspense fallback={<NamePageFallback />}>
+      <NamePageInner />
+    </Suspense>
   );
 }

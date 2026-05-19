@@ -120,6 +120,8 @@ export default function ListsPage() {
   const [newListName, setNewListName] = useState('');
   const [newListType, setNewListType] = useState<'supermarket' | 'pharmacy' | 'house'>('supermarket');
   const [user, setUser] = useState<any>(null);
+  const [currentUserName, setCurrentUserName] = useState('');
+  const [householdMembers, setHouseholdMembers] = useState<Array<{ name: string; emoji: string; bg: string }>>([]);
   const [items, setItems] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
@@ -145,7 +147,22 @@ export default function ListsPage() {
           return;
         }
 
+        setCurrentUserName(userData.name);
+
         if (userData?.household_id) {
+          const { data: householdUsersData } = await supabase
+            .from('users')
+            .select('name')
+            .eq('household_id', userData.household_id);
+
+          const memberColors = ['#C7D8BB', '#F2C9B1', '#E8C4B8', '#D4E5D8'];
+          const members = householdUsersData?.map((u, i) => ({
+            name: u.name,
+            emoji: i === 0 ? '🧑' : '👩',
+            bg: memberColors[i % memberColors.length],
+          })) || [];
+          setHouseholdMembers(members);
+
           const { data: listData } = await supabase
             .from('lists')
             .select('*')
@@ -226,9 +243,12 @@ export default function ListsPage() {
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
-              <MemberDot bg="#C7D8BB" emoji="🧑" />
-              <MemberDot bg="#F2C9B1" emoji="👩" />
-              <div className="text-xs font-bold text-ink-70">אילון ודנה</div>
+              {householdMembers.map((member) => (
+                <MemberDot key={member.name} bg={member.bg} emoji={member.emoji} />
+              ))}
+              <div className="text-xs font-bold text-ink-70">
+                {householdMembers.map((m) => m.name).join(' ו')}
+              </div>
             </div>
             <h1 className="text-3xl font-bold leading-tight">הרשימות שלנו</h1>
           </div>

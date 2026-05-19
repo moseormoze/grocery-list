@@ -41,26 +41,20 @@ export default function SignUpPage() {
 
   if (sent) {
     return (
-      <div style={{ padding: '32px 24px', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 24 }}>📬</div>
-        <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>בדוק את הדוא״ל שלך</h2>
-        <p style={{ fontSize: 16, color: '#666', marginBottom: 32 }}>
-          שלחנו קישור התחברות לכתובת{' '}
-          <strong style={{ direction: 'ltr' }}>{email}</strong>
+      <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 py-8">
+        <div className="w-32 h-32 rounded-full bg-accent-bg flex items-center justify-center text-5xl mb-8">
+          📬
+        </div>
+        <h2 className="text-2xl font-bold text-center mb-3 max-w-sm">בדוק את הדוא״ל שלך</h2>
+        <p className="text-sm text-ink-70 text-center mb-8 max-w-sm leading-relaxed">
+          שלחנו קישור התחברות לכתובת <span className="ltr font-bold">{email}</span>
         </p>
         <button
           onClick={() => {
             setSent(false);
             setEmail('');
           }}
-          style={{
-            padding: '12px 24px',
-            background: '#f0f0f0',
-            border: 'none',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontSize: 16,
-          }}
+          className="px-6 py-3 bg-ink-06 border-0 rounded-full cursor-pointer text-base font-bold text-ink-70 hover:bg-ink-10 transition-colors"
         >
           חזור
         </button>
@@ -69,57 +63,49 @@ export default function SignUpPage() {
   }
 
   return (
-    <div style={{ padding: '32px 24px' }}>
-      <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 32, textAlign: 'center' }}>
-        כנס עם דוא״ל
-      </h1>
-
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 600 }}>
-            כתובת דוא״ל
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            dir="auto"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              border: '1px solid #ddd',
-              borderRadius: 8,
-              fontSize: 16,
-              boxSizing: 'border-box',
-            }}
-          />
+    <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 py-8">
+      <div className="w-full max-w-sm flex flex-col gap-8">
+        <div className="flex flex-col gap-2 text-center">
+          <div className="text-5xl">📝</div>
+          <h1 className="text-3xl font-bold">ברוכים הבאים</h1>
+          <p className="text-sm text-ink-70">בואו נתחיל עם רשימת קניות משותפת</p>
         </div>
 
-        {error && (
-          <div style={{ padding: 12, background: '#fee', color: '#c33', borderRadius: 8, fontSize: 14 }}>
-            {error}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold text-ink-70">כתובת דוא״ל</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              dir="auto"
+              disabled={loading}
+              className="input"
+            />
           </div>
-        )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            padding: '12px 24px',
-            background: loading ? '#ccc' : '#22c55e',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            fontSize: 16,
-            fontWeight: 600,
-            cursor: loading ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {loading ? 'שולח...' : 'שלח קישור התחברות'}
-        </button>
-      </form>
+          {error && (
+            <div className="px-4 py-3 bg-danger/10 text-danger rounded-lg text-sm font-medium border border-danger/20">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={`px-6 py-3 text-ink border-0 rounded-full text-base font-bold cursor-pointer transition-colors ${
+              loading ? 'bg-ink-10 cursor-not-allowed' : 'bg-accent hover:bg-accent-dark'
+            }`}
+          >
+            {loading ? 'שולח...' : 'שלח קישור התחברות'}
+          </button>
+        </form>
+
+        <div className="text-center text-xs text-ink-70">
+          <p>נראה שאתה חדש בכאן? אנחנו ניצור לך חשבון.</p>
+        </div>
+      </div>
     </div>
   );
 }

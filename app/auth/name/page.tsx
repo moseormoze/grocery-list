@@ -71,56 +71,44 @@ export default function NamePage() {
   };
 
   return (
-    <div style={{ padding: '32px 24px' }}>
-      <h1 style={{ fontSize: 32, fontWeight: 700, marginBottom: 32, textAlign: 'center' }}>
-        מה שמך?
-      </h1>
-
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 600 }}>
-            שם
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="שם שלך"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              border: '1px solid #ddd',
-              borderRadius: 8,
-              fontSize: 16,
-              boxSizing: 'border-box',
-            }}
-          />
+    <div className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 py-8">
+      <div className="w-full max-w-sm flex flex-col gap-8">
+        <div className="flex flex-col gap-2 text-center">
+          <div className="text-5xl">👤</div>
+          <h1 className="text-3xl font-bold">מה שמך?</h1>
+          <p className="text-sm text-ink-70">נשתמש בשם הזה כדי להזכיר את זהותך</p>
         </div>
 
-        {error && (
-          <div style={{ padding: 12, background: '#fee', color: '#c33', borderRadius: 8, fontSize: 14 }}>
-            {error}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold text-ink-70">שם מלא</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="שם שלך"
+              disabled={loading}
+              className="input"
+            />
           </div>
-        )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            padding: '12px 24px',
-            background: loading ? '#ccc' : '#22c55e',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            fontSize: 16,
-            fontWeight: 600,
-            cursor: loading ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {loading ? 'יוצר...' : 'המשך'}
-        </button>
-      </form>
+          {error && (
+            <div className="px-4 py-3 bg-danger/10 text-danger rounded-lg text-sm font-medium border border-danger/20">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={`px-6 py-3 text-ink border-0 rounded-full text-base font-bold cursor-pointer transition-colors ${
+              loading ? 'bg-ink-10 cursor-not-allowed' : 'bg-accent hover:bg-accent-dark'
+            }`}
+          >
+            {loading ? 'יוצר...' : 'המשך'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

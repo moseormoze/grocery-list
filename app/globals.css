@@ -366,4 +366,16 @@
   .item-qty.ticked {
     text-decoration: line-through;
   }
+
+  .item-row:hover {
+    background-color: #FBF8F1;
+  }
+
+  .item-row.dragging {
+    background-color: #FFFFFF;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    transform: scale(1.015);
+    border-radius: 12px;
+    z-index: 50;
+  }
 }

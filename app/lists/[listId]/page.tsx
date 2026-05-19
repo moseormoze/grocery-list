@@ -1,10 +1,36 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useList } from '@/hooks/useList';
 import type { Item } from '@/lib/db/types';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
+  ArrowRight,
+  Settings,
+  GripVertical,
+  Pencil,
+  Trash2,
+  Check,
+} from 'lucide-react';
 
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
   supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
@@ -41,12 +67,11 @@ const SECTIONS_BY_TYPE: Record<'supermarket' | 'pharmacy' | 'house', Record<stri
     other: { name: 'אחר', emoji: '📦', tint: '#ECEAE5', ink: '#5A554B' },
   },
   house: {
-    cleaning: { name: 'ניקיון', emoji: '🧽', tint: '#DEEFEC', ink: '#3E7C76' },
-    laundry: { name: 'כביסה', emoji: '👕', tint: '#E7F1F7', ink: '#3B6C8C' },
-    furniture: { name: 'ריהוט', emoji: '🛋️', tint: '#F2E9D5', ink: '#8A6A2B' },
+    furniture: { name: 'רהיט', emoji: '🛋️', tint: '#F2E9D5', ink: '#8A6A2B' },
+    appliance: { name: 'מכשיר חשמל', emoji: '🔌', tint: '#E7F1F7', ink: '#3B6C8C' },
     decor: { name: 'עיצוב וקישוט', emoji: '🖼️', tint: '#F7E2E8', ink: '#A24566' },
-    repairs: { name: 'תיקון וצביעה', emoji: '🔧', tint: '#F6E0DA', ink: '#A0432F' },
     tools: { name: 'כלים וחומרים', emoji: '🪛', tint: '#FAE7CB', ink: '#A86220' },
+    storage: { name: 'איחסון', emoji: '📦', tint: '#E8F1DD', ink: '#4F6E32' },
     other: { name: 'אחר', emoji: '📦', tint: '#ECEAE5', ink: '#5A554B' },
   },
 };
@@ -56,7 +81,7 @@ export default function ListDetailPage() {
   const params = useParams();
   const listId = params?.listId as string;
 
-  const { list, items, loading, error, updateOptimistically, deleteOptimistically } = useList(listId);
+  const { list, items, loading, error, updateOptimistically, deleteOptimistically, reorderOptimistically } = useList(listId);
   const [mode, setMode] = useState<'browse' | 'edit'>('browse');
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
@@ -67,6 +92,12 @@ export default function ListDetailPage() {
   const [swipedItemId, setSwipedItemId] = useState<string | null>(null);
   const touchStartRef = useRef(0);
   const touchEndRef = useRef(0);
+
+  const sensors = useSensors(
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   if (loading) {
     return (
@@ -186,6 +217,163 @@ export default function ListDetailPage() {
     return acc;
   }, {} as Record<string, Item[]>);
 
+  function SortableItem({
+    item,
+    isSwipped,
+    handleTouchStart,
+    handleTouchEnd,
+  }: {
+    item: Item;
+    isSwipped: boolean;
+    handleTouchStart: (e: React.TouchEvent) => void;
+    handleTouchEnd: (e: React.TouchEvent) => void;
+  }) {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: item.id, disabled: mode !== 'edit' });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+    };
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="relative overflow-hidden rounded-lg"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Swipe-to-delete panel */}
+        {isSwipped && mode === 'browse' && (
+          <div
+            className="absolute inset-0 flex items-center justify-center gap-2 px-4"
+            style={{
+              background: '#B14A33',
+              zIndex: 10,
+              width: '110px',
+              right: 0,
+            }}
+          >
+            <Trash2 size={18} color="#fff" />
+            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}>מחיקה</span>
+          </div>
+        )}
+
+        {/* Item row */}
+        <div
+          className={`item-row ${mode === 'edit' ? 'item-row edit-mode' : ''} ${
+            item.ticked ? 'item-row ticked' : ''
+          } ${isDragging ? 'item-row dragging' : ''}`}
+          style={{
+            transform: isSwipped ? 'translateX(110px)' : 'translateX(0)',
+            transition: 'transform 200ms',
+          }}
+          onClick={() => {
+            if (isSwipped) {
+              handleDeleteItem(item);
+              setSwipedItemId(null);
+              return;
+            }
+            if (mode === 'edit') {
+              setEditingItem(item);
+              setItemName(item.name);
+              setItemQty(item.qty || '');
+              setItemSection(item.section_id || 'other');
+              setShowAddSheet(true);
+            } else {
+              handleTickItem(item);
+            }
+          }}
+        >
+          {mode === 'edit' ? (
+            <div
+              className="w-11 h-11 flex items-center justify-center flex-shrink-0 text-ink-30 cursor-grab active:cursor-grabbing"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical size={20} />
+            </div>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTickItem(item);
+              }}
+              className="w-11 h-11 flex items-center justify-center flex-shrink-0 bg-transparent border-0 cursor-pointer p-0 transition-all"
+              style={{
+                borderRadius: '50%',
+              }}
+            >
+              <div
+                className="w-26 h-26 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all"
+                style={{
+                  width: '26px',
+                  height: '26px',
+                  borderColor: item.ticked ? '#F4B5A0' : 'rgba(28,27,23,0.3)',
+                  background: item.ticked ? '#F4B5A0' : 'transparent',
+                  borderWidth: '1.8px',
+                }}
+              >
+                {item.ticked && <Check size={14} color="#fff" strokeWidth={3} />}
+              </div>
+            </button>
+          )}
+
+          <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+            <div
+              className={`item-name ${item.ticked ? 'ticked' : ''}`}
+              dir="auto"
+            >
+              {item.name}
+            </div>
+            {item.qty && (
+              <div
+                className={`item-qty ${item.ticked ? 'ticked' : ''}`}
+                dir="auto"
+              >
+                {item.qty}
+              </div>
+            )}
+          </div>
+
+          {mode === 'edit' && (
+            <div className="flex items-center gap-0 flex-shrink-0">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingItem(item);
+                  setItemName(item.name);
+                  setItemQty(item.qty || '');
+                  setItemSection(item.section_id || 'other');
+                  setShowAddSheet(true);
+                }}
+                className="icon-btn"
+              >
+                <Pencil size={18} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteItem(item);
+                }}
+                className="icon-btn danger"
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-cream pb-32 flex flex-col">
       {/* Top Bar */}
@@ -195,7 +383,7 @@ export default function ListDetailPage() {
             onClick={() => router.back()}
             className="icon-btn text-xl"
           >
-            ‹
+            <ArrowRight />
           </button>
           <div
             className="w-9 h-9 rounded-lg flex items-center justify-center text-lg flex-shrink-0"
@@ -263,6 +451,35 @@ export default function ListDetailPage() {
               if (sectionItems.length === 0) return null;
               const sectionInfo = SECTIONS_BY_TYPE[list.type][section] || SECTIONS_BY_TYPE[list.type].other;
 
+              const handleDragEnd = async (event: DragEndEvent) => {
+                const { active, over } = event;
+                if (!over || active.id === over.id) return;
+
+                const oldIndex = sectionItems.findIndex((i) => i.id === active.id);
+                const newIndex = sectionItems.findIndex((i) => i.id === over.id);
+
+                if (oldIndex === -1 || newIndex === -1) return;
+
+                const reorderedItems = arrayMove(sectionItems, oldIndex, newIndex);
+                const reorderedIds = reorderedItems.map((i) => i.id);
+
+                reorderOptimistically(reorderedIds);
+
+                const updates = reorderedItems.map((item, idx) => ({
+                  id: item.id,
+                  order_index: items.findIndex((i) => i.id === reorderedIds[idx]),
+                }));
+
+                await Promise.all(
+                  updates.map((update) =>
+                    supabase
+                      .from('items')
+                      .update({ order_index: update.order_index })
+                      .eq('id', update.id)
+                  )
+                );
+              };
+
               return (
                 <div key={section} className="flex flex-col gap-2">
                   {/* Section Banner */}
@@ -284,189 +501,47 @@ export default function ListDetailPage() {
                     </div>
                   </div>
 
-                  {/* Section Items */}
-                  <div className="flex flex-col">
-                    {sectionItems.map((item) => {
-                      const isSwipped = swipedItemId === item.id;
+                  {/* Section Items with DnD */}
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={sectionItems.map((i) => i.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="flex flex-col">
+                        {sectionItems.map((item) => {
+                          const isSwipped = swipedItemId === item.id;
 
-                      const handleTouchStart = (e: React.TouchEvent) => {
-                        touchStartRef.current = e.changedTouches[0].clientX;
-                      };
+                          const handleTouchStart = (e: React.TouchEvent) => {
+                            touchStartRef.current = e.changedTouches[0].clientX;
+                          };
 
-                      const handleTouchEnd = (e: React.TouchEvent) => {
-                        touchEndRef.current = e.changedTouches[0].clientX;
-                        const distance = touchStartRef.current - touchEndRef.current;
-                        if (distance > 50) {
-                          setSwipedItemId(item.id);
-                        }
-                        touchStartRef.current = 0;
-                        touchEndRef.current = 0;
-                      };
-
-                      return (
-                      <div
-                        key={item.id}
-                        className="relative overflow-hidden rounded-lg"
-                        onTouchStart={handleTouchStart}
-                        onTouchEnd={handleTouchEnd}
-                      >
-                        {/* Swipe-to-delete panel */}
-                        {isSwipped && mode === 'browse' && (
-                          <div
-                            className="absolute inset-0 flex items-center justify-center gap-2 px-4"
-                            style={{
-                              background: '#B14A33',
-                              zIndex: 10,
-                              width: '110px',
-                              right: 0,
-                            }}
-                          >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="3 6 5 6 21 6" />
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                              <line x1="10" y1="11" x2="10" y2="17" />
-                              <line x1="14" y1="11" x2="14" y2="17" />
-                            </svg>
-                            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}>מחיקה</span>
-                          </div>
-                        )}
-
-                        {/* Item row */}
-                        <div
-                          className="flex items-center gap-1 min-h-14 px-2 py-1 cursor-pointer border-b border-ink-06 last:border-b-0 transition-all bg-cream"
-                          style={{
-                            opacity: !mode && item.ticked ? 0.5 : 1,
-                            backgroundColor: mode === 'edit' ? '#FBF8F1' : 'transparent',
-                            borderRadius: mode === 'edit' ? '12px' : '0px',
-                            transform: isSwipped ? 'translateX(110px)' : 'translateX(0)',
-                            transition: 'transform 200ms',
-                          }}
-                          onClick={() => {
-                            if (isSwipped) {
-                              handleDeleteItem(item);
-                              setSwipedItemId(null);
-                              return;
+                          const handleTouchEnd = (e: React.TouchEvent) => {
+                            touchEndRef.current = e.changedTouches[0].clientX;
+                            const distance = touchStartRef.current - touchEndRef.current;
+                            if (distance > 50) {
+                              setSwipedItemId(item.id);
                             }
-                            if (mode === 'edit') {
-                              setEditingItem(item);
-                              setItemName(item.name);
-                              setItemQty(item.qty || '');
-                              setItemSection(item.section_id || 'other');
-                              setShowAddSheet(true);
-                            } else {
-                              handleTickItem(item);
-                            }
-                          }}
-                        >
-                        {mode === 'edit' ? (
-                          <div className="w-11 h-11 flex items-center justify-center flex-shrink-0 text-ink-30">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                              <circle cx="9" cy="6" r="0.5" />
-                              <circle cx="15" cy="6" r="0.5" />
-                              <circle cx="9" cy="12" r="0.5" />
-                              <circle cx="15" cy="12" r="0.5" />
-                              <circle cx="9" cy="18" r="0.5" />
-                              <circle cx="15" cy="18" r="0.5" />
-                            </svg>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleTickItem(item);
-                            }}
-                            className="w-11 h-11 flex items-center justify-center flex-shrink-0 bg-transparent border-0 cursor-pointer p-0 transition-all"
-                            style={{
-                              borderRadius: '50%',
-                            }}
-                          >
-                            <div
-                              className="w-26 h-26 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all"
-                              style={{
-                                width: '26px',
-                                height: '26px',
-                                borderColor: item.ticked ? '#F4B5A0' : 'rgba(28,27,23,0.3)',
-                                background: item.ticked ? '#F4B5A0' : 'transparent',
-                                borderWidth: '1.8px',
-                              }}
-                            >
-                              {item.ticked && (
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                              )}
-                            </div>
-                          </button>
-                        )}
+                            touchStartRef.current = 0;
+                            touchEndRef.current = 0;
+                          };
 
-                        <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-                          <div
-                            className="text-base font-semibold leading-snug transition-all"
-                            style={{
-                              textDecoration: item.ticked && mode !== 'edit' ? 'line-through' : 'none',
-                              textDecorationThickness: '1.5px',
-                              textDecorationColor: item.ticked ? 'rgba(28,27,23,0.5)' : 'transparent',
-                              color: '#1C1B17',
-                              transition: 'all 250ms',
-                            }}
-                            dir="auto"
-                          >
-                            {item.name}
-                          </div>
-                          {item.qty && (
-                            <div
-                              className="text-xs font-medium transition-all"
-                              style={{
-                                color: 'rgba(28,27,23,0.5)',
-                                textDecoration: item.ticked && mode !== 'edit' ? 'line-through' : 'none',
-                                transition: 'all 250ms',
-                              }}
-                              dir="auto"
-                            >
-                              {item.qty}
-                            </div>
-                          )}
-                        </div>
-
-                        {mode === 'edit' && (
-                          <div className="flex items-center gap-0 flex-shrink-0">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingItem(item);
-                                setItemName(item.name);
-                                setItemQty(item.qty || '');
-                                setItemSection(item.section_id || 'other');
-                                setShowAddSheet(true);
-                              }}
-                              className="icon-btn"
-                            >
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M14.5 4.5l5 5L8 21H3v-5L14.5 4.5z" />
-                                <path d="M13 6l5 5" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteItem(item);
-                              }}
-                              className="icon-btn danger"
-                            >
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="3 6 5 6 21 6" />
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                <line x1="10" y1="11" x2="10" y2="17" />
-                                <line x1="14" y1="11" x2="14" y2="17" />
-                              </svg>
-                            </button>
-                          </div>
-                        )}
-                        </div>
+                          return (
+                            <SortableItem
+                              key={item.id}
+                              item={item}
+                              isSwipped={isSwipped}
+                              handleTouchStart={handleTouchStart}
+                              handleTouchEnd={handleTouchEnd}
+                            />
+                          );
+                        })}
                       </div>
-                      );
-                    })}
-                  </div>
+                    </SortableContext>
+                  </DndContext>
                 </div>
               );
             })}

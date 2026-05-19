@@ -23,7 +23,7 @@ export interface UseListState {
  * Automatically subscribes to changes and unsubscribes on unmount.
  * Supports optimistic updates via updateOptimistically.
  */
-export function useList(listId: string): UseListState & { updateOptimistically: (item: Item) => void; deleteOptimistically: (itemId: string) => void } {
+export function useList(listId: string): UseListState & { updateOptimistically: (item: Item) => void; deleteOptimistically: (itemId: string) => void; reorderOptimistically: (orderedIds: string[]) => void } {
   const [list, setList] = useState<List | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +48,17 @@ export function useList(listId: string): UseListState & { updateOptimistically: 
   // Optimistic delete: remove item from local state immediately
   const deleteOptimistically = useCallback((itemId: string) => {
     setItems((prev) => prev.filter((i) => i.id !== itemId));
+  }, []);
+
+  // Optimistic reorder: reorder items to match given ID order
+  const reorderOptimistically = useCallback((orderedIds: string[]) => {
+    setItems((prev) => {
+      const itemMap = new Map(prev.map((item) => [item.id, item]));
+      const reordered = orderedIds
+        .map((id) => itemMap.get(id))
+        .filter((item) => item !== undefined) as Item[];
+      return reordered;
+    });
   }, []);
 
   // Fetch initial list data
@@ -150,5 +161,6 @@ export function useList(listId: string): UseListState & { updateOptimistically: 
     refetch,
     updateOptimistically,
     deleteOptimistically,
+    reorderOptimistically,
   };
 }

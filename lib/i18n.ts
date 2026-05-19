@@ -1,7 +1,5 @@
 import messages from '@/messages/he.json';
 
-type MessageKeys = typeof messages;
-
 /**
  * Simple i18n helper for Hebrew (MVP only).
  * Returns translated string from messages/he.json.

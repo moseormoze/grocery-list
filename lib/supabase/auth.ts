@@ -56,11 +56,13 @@ export async function createUserProfile(userId: string, email: string, name: str
       .single();
 
     if (error) {
+      console.error('createUserProfile error:', error);
       return { success: false, error: error.message };
     }
 
     return { success: true, data };
   } catch (e) {
+    console.error('createUserProfile exception:', e);
     return { success: false, error: String(e) };
   }
 }
@@ -92,11 +94,13 @@ export async function createHousehold() {
       .single();
 
     if (error) {
+      console.error('createHousehold error:', error);
       return { success: false, error: error.message };
     }
 
     return { success: true, householdId: data?.id };
   } catch (e) {
+    console.error('createHousehold exception:', e);
     return { success: false, error: String(e) };
   }
 }

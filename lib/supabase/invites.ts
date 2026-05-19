@@ -24,7 +24,7 @@ export async function createInviteToken(householdId: string) {
     const tokenHash = hashToken(token);
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('invite_tokens')
       .insert({
         household_id: householdId,

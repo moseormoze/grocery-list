@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getOfflineQueue, NetworkSimulator, type QueuedMutation } from '@/lib/offline/queue';
-import { replayOfflineMutations, type SyncResult } from '@/lib/supabase/sync';
+import { replayOfflineMutations } from '@/lib/supabase/sync';
 
 export interface UseOfflineQueueState {
   isOnline: boolean;
@@ -21,7 +21,6 @@ export function useOfflineQueue(): UseOfflineQueueState {
   const [queue, setQueue] = useState<QueuedMutation[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
-  const simulatorRef = useRef<NetworkSimulator | null>(null);
   const unsubscribeRef = useRef<() => void>(() => {});
 
   const unsyncedCount = queue.filter((m) => !m.synced).length;

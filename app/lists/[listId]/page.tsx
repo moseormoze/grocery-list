@@ -12,17 +12,37 @@ const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: strin
   house: { label: 'בית', emoji: '🏠', tint: '#F2E9D5' },
 };
 
-const SECTIONS: Record<string, { name: string; emoji: string; tint: string; ink: string }> = {
-  produce: { name: 'ירקות ופירות', emoji: '🥬', tint: '#E8F1DD', ink: '#4F6E32' },
-  milk: { name: 'מוצרי חלב', emoji: '🥛', tint: '#E7F1F7', ink: '#3B6C8C' },
-  meat: { name: 'בשר ודגים', emoji: '🥩', tint: '#F6E0DA', ink: '#A0432F' },
-  dry: { name: 'יבש', emoji: '🌾', tint: '#F2E9D5', ink: '#8A6A2B' },
-  baking: { name: 'אפייה ומאפייה', emoji: '🧁', tint: '#F7E2E8', ink: '#A24566' },
-  cleaning: { name: 'ניקיון', emoji: '🧽', tint: '#DEEFEC', ink: '#3E7C76' },
-  snacks: { name: 'חטיפים', emoji: '🍿', tint: '#FAE7CB', ink: '#A86220' },
-  drinks: { name: 'משקאות', emoji: '🥤', tint: '#E6E2F0', ink: '#564B86' },
-  frozen: { name: 'קפואים', emoji: '🧊', tint: '#E0EBF2', ink: '#3D6580' },
-  other: { name: 'אחר', emoji: '📦', tint: '#ECEAE5', ink: '#5A554B' },
+const SECTIONS_BY_TYPE: Record<'supermarket' | 'pharmacy' | 'house', Record<string, { name: string; emoji: string; tint: string; ink: string }>> = {
+  supermarket: {
+    produce: { name: 'ירקות ופירות', emoji: '🥬', tint: '#E8F1DD', ink: '#4F6E32' },
+    milk: { name: 'מוצרי חלב', emoji: '🥛', tint: '#E7F1F7', ink: '#3B6C8C' },
+    meat: { name: 'בשר ודגים', emoji: '🥩', tint: '#F6E0DA', ink: '#A0432F' },
+    dry: { name: 'יבש', emoji: '🌾', tint: '#F2E9D5', ink: '#8A6A2B' },
+    baking: { name: 'אפייה ומאפייה', emoji: '🧁', tint: '#F7E2E8', ink: '#A24566' },
+    snacks: { name: 'חטיפים', emoji: '🍿', tint: '#FAE7CB', ink: '#A86220' },
+    drinks: { name: 'משקאות', emoji: '🥤', tint: '#E6E2F0', ink: '#564B86' },
+    frozen: { name: 'קפואים', emoji: '🧊', tint: '#E0EBF2', ink: '#3D6580' },
+    cleaning: { name: 'ניקיון', emoji: '🧽', tint: '#DEEFEC', ink: '#3E7C76' },
+    other: { name: 'אחר', emoji: '📦', tint: '#ECEAE5', ink: '#5A554B' },
+  },
+  pharmacy: {
+    medicines: { name: 'תרופות', emoji: '💊', tint: '#F7E2E8', ink: '#A24566' },
+    vitamins: { name: 'ויטמינים ומינרלים', emoji: '💉', tint: '#E7F1F7', ink: '#3B6C8C' },
+    pain_relief: { name: 'משכללי כאב', emoji: '🩹', tint: '#F6E0DA', ink: '#A0432F' },
+    bandages: { name: 'פד ותחבושות', emoji: '🩺', tint: '#DEEFEC', ink: '#3E7C76' },
+    creams: { name: 'קרמים ומשחות', emoji: '🧴', tint: '#FAE7CB', ink: '#A86220' },
+    hygiene: { name: 'יגיינה אישית', emoji: '🧼', tint: '#E8F1DD', ink: '#4F6E32' },
+    other: { name: 'אחר', emoji: '📦', tint: '#ECEAE5', ink: '#5A554B' },
+  },
+  house: {
+    cleaning: { name: 'ניקיון', emoji: '🧽', tint: '#DEEFEC', ink: '#3E7C76' },
+    laundry: { name: 'כביסה', emoji: '👕', tint: '#E7F1F7', ink: '#3B6C8C' },
+    furniture: { name: 'ריהוט', emoji: '🛋️', tint: '#F2E9D5', ink: '#8A6A2B' },
+    decor: { name: 'עיצוב וקישוט', emoji: '🖼️', tint: '#F7E2E8', ink: '#A24566' },
+    repairs: { name: 'תיקון וצביעה', emoji: '🔧', tint: '#F6E0DA', ink: '#A0432F' },
+    tools: { name: 'כלים וחומרים', emoji: '🪛', tint: '#FAE7CB', ink: '#A86220' },
+    other: { name: 'אחר', emoji: '📦', tint: '#ECEAE5', ink: '#5A554B' },
+  },
 };
 
 export default function ListDetailPage() {
@@ -232,7 +252,7 @@ export default function ListDetailPage() {
           <div className="flex flex-col gap-4">
             {Object.entries(groupedItems).map(([section, sectionItems]) => {
               if (sectionItems.length === 0) return null;
-              const sectionInfo = SECTIONS[section] || SECTIONS.other;
+              const sectionInfo = SECTIONS_BY_TYPE[list.type][section] || SECTIONS_BY_TYPE[list.type].other;
 
               return (
                 <div key={section} className="flex flex-col gap-2">
@@ -425,7 +445,7 @@ export default function ListDetailPage() {
                   onChange={(e) => setItemSection(e.target.value)}
                   className="input"
                 >
-                  {Object.entries(SECTIONS).map(([key, section]) => (
+                  {Object.entries(SECTIONS_BY_TYPE[list.type]).map(([key, section]) => (
                     <option key={key} value={key}>
                       {section.emoji} {section.name}
                     </option>

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import type { List } from '@/lib/db/types';
+import { EmojiIcon } from '@/lib/icon-map';
+import { Settings, ChevronLeft } from 'lucide-react';
 
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
   supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
@@ -65,7 +67,7 @@ function ListCard({ list, onOpen, ticked, total }: { list: ListWithProgress; onO
           className="w-14 h-14 rounded-lg flex items-center justify-center text-2xl flex-shrink-0"
           style={{ background: type.tint }}
         >
-          {type.emoji}
+          <EmojiIcon emoji={type.emoji} />
         </div>
         <div className="flex-1 min-w-0 flex flex-col gap-1.5">
           <div className="text-lg font-bold leading-tight truncate">{list.name}</div>
@@ -74,14 +76,16 @@ function ListCard({ list, onOpen, ticked, total }: { list: ListWithProgress; onO
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
               style={{ background: type.tint, color: '#1C1B17' }}
             >
-              <span>{type.emoji}</span>
+              <EmojiIcon emoji={type.emoji} />
               {type.label}
             </span>
             <ProgressBadge ticked={ticked} total={total} />
           </div>
           <div className="text-xs font-medium text-ink-50">{list.created_at ? new Date(list.created_at).toLocaleDateString('he-IL') : 'חדש'}</div>
         </div>
-        <div className="text-ink-30 mt-3">›</div>
+        <div className="text-ink-30 mt-3">
+          <ChevronLeft size={20} />
+        </div>
       </div>
       {total > 0 && ticked > 0 && (
         <div className="h-1 rounded-full bg-ink-06 overflow-hidden">
@@ -250,7 +254,7 @@ export default function ListsPage() {
             <h1 className="text-3xl font-bold leading-tight">הרשימות שלנו</h1>
           </div>
           <button className="icon-btn text-lg">
-            ⚙︎
+            <Settings size={20} />
           </button>
         </div>
       </div>
@@ -261,7 +265,7 @@ export default function ListsPage() {
           <div className="flex flex-col items-center justify-center gap-6 py-20 text-center min-h-96">
             <div className="w-32 h-32 rounded-full bg-accent-bg flex items-center justify-center text-6xl relative">
               <span className="block" style={{ transform: 'rotate(-8deg)' }}>
-                📝
+                <EmojiIcon emoji="📝" />
               </span>
             </div>
             <div className="flex flex-col gap-2">

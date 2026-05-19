@@ -30,6 +30,7 @@ import {
   Trash2,
   Check,
 } from 'lucide-react';
+import { EmojiIcon } from '@/lib/icon-map';
 
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
   supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
@@ -388,7 +389,7 @@ export default function ListDetailPage() {
             className="w-9 h-9 rounded-lg flex items-center justify-center text-lg flex-shrink-0"
             style={{ background: typeInfo.tint }}
           >
-            {typeInfo.emoji}
+            <EmojiIcon emoji={typeInfo.emoji} />
           </div>
           <div className="flex-1 min-w-0 flex flex-col">
             <div className="font-bold text-base truncate">{list.name}</div>
@@ -438,7 +439,9 @@ export default function ListDetailPage() {
       <div className="flex-1 px-4 py-2">
         {totalCount === 0 && mode === 'browse' ? (
           <div className="flex flex-col items-center justify-center gap-6 py-20 text-center">
-            <div className="text-5xl">📝</div>
+            <div className="text-5xl">
+              <EmojiIcon emoji="📝" />
+            </div>
             <div className="flex flex-col gap-2">
               <h2 className="text-lg font-bold">רשימה ריקה</h2>
               <p className="text-xs text-ink-70">התחילו בלחיצה על "+ הוסף פריט"</p>
@@ -495,8 +498,8 @@ export default function ListDetailPage() {
                     >
                       {sectionInfo.name}
                     </div>
-                    <div className="text-3xl" style={{ transform: 'translateY(2px) rotate(-6deg)' }}>
-                      {sectionInfo.emoji}
+                    <div className="text-3xl flex items-center justify-center" style={{ transform: 'translateY(2px) rotate(-6deg)', width: '36px', height: '36px' }}>
+                      <EmojiIcon emoji={sectionInfo.emoji} />
                     </div>
                   </div>
 

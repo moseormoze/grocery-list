@@ -300,18 +300,20 @@ export default function ListDetailPage() {
                             >
                               ✏️
                             </button>
-                            <div className="w-11 h-11 flex items-center justify-center text-ink-30 cursor-grab">
-                              ⋮⋮
+                            <div className="w-11 h-11 flex items-center justify-center text-ink-30 cursor-grab text-lg">
+                              ⋮
                             </div>
                           </>
                         ) : (
-                          <input
-                            type="checkbox"
-                            checked={item.ticked}
-                            onChange={() => handleTickItem(item)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-6 h-6 cursor-pointer accent-accent"
-                          />
+                          <div
+                            className="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors"
+                            style={{
+                              borderColor: item.ticked ? '#F4B5A0' : '#1C1B17',
+                              background: item.ticked ? '#F4B5A0' : 'transparent',
+                            }}
+                          >
+                            {item.ticked && <span className="text-sm text-white">✓</span>}
+                          </div>
                         )}
 
                         <div className="flex-1 min-w-0 flex flex-col gap-0.5">

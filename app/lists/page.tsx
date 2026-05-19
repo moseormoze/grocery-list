@@ -124,44 +124,51 @@ export default function ListsPage() {
 
   useEffect(() => {
     const checkAuthAndLoadLists = async () => {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      if (!currentUser) {
-        router.push('/auth/signup');
-        return;
-      }
-
-      setUser(currentUser);
-
-      const { data: userData } = await supabase
-        .from('users')
-        .select('household_id, name')
-        .eq('id', currentUser.id)
-        .single();
-
-      if (userData?.household_id) {
-        const { data: listData } = await supabase
-          .from('lists')
-          .select('*')
-          .eq('household_id', userData.household_id);
-
-        setLists(listData || []);
-
-        if (listData && listData.length > 0) {
-          const { data: itemsData } = await supabase
-            .from('items')
-            .select('*')
-            .in('list_id', listData.map((l) => l.id));
-
-          const itemsByList: Record<string, any[]> = {};
-          listData.forEach((l) => {
-            itemsByList[l.id] = itemsData?.filter((i) => i.list_id === l.id) || [];
-          });
-          setItems(itemsByList);
+        if (!currentUser) {
+          router.push('/auth/signup');
+          return;
         }
-      }
 
-      setLoading(false);
+        setUser(currentUser);
+
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('household_id, name')
+          .eq('id', currentUser.id)
+          .single();
+
+        if (userError || !userData) {
+          router.push('/auth/name');
+          return;
+        }
+
+        if (userData?.household_id) {
+          const { data: listData } = await supabase
+            .from('lists')
+            .select('*')
+            .eq('household_id', userData.household_id);
+
+          setLists(listData || []);
+
+          if (listData && listData.length > 0) {
+            const { data: itemsData } = await supabase
+              .from('items')
+              .select('*')
+              .in('list_id', listData.map((l) => l.id));
+
+            const itemsByList: Record<string, any[]> = {};
+            listData.forEach((l) => {
+              itemsByList[l.id] = itemsData?.filter((i) => i.list_id === l.id) || [];
+            });
+            setItems(itemsByList);
+          }
+        }
+      } finally {
+        setLoading(false);
+      }
     };
 
     checkAuthAndLoadLists();

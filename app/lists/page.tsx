@@ -1,23 +1,19 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import type { List } from '@/lib/db/types';
+import type { ListWithProgress } from '@/lib/db/types';
 import { EmojiIcon } from '@/lib/icon-map';
-import { Settings, ChevronLeft, Trash2 } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { InvitePartnerBanner } from '@/components/InvitePartnerBanner';
+import { ListCard } from '@/components/ListCard';
 
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
   supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
   pharmacy: { label: 'פארם', emoji: '💊', tint: '#E4EEF3' },
   house: { label: 'בית', emoji: '🏠', tint: '#F2E9D5' },
 };
-
-interface ListWithProgress extends List {
-  tickedCount?: number;
-  totalCount?: number;
-}
 
 function MemberDot({ bg, emoji }: { bg: string; emoji: string }) {
   return (
@@ -26,154 +22,6 @@ function MemberDot({ bg, emoji }: { bg: string; emoji: string }) {
       style={{ background: bg, boxShadow: '0 0 0 2.5px #fff' }}
     >
       <EmojiIcon emoji={emoji} />
-    </div>
-  );
-}
-
-function ProgressBadge({ ticked, total }: { ticked: number; total: number }) {
-  if (total === 0) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-ink-06 text-ink-70">ריקה</span>;
-  }
-  if (ticked === 0) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-ink-06 text-ink-70">{total} פריטים</span>;
-  }
-  if (ticked === total) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold" style={{ background: '#EDF2E8', color: '#46613F' }}>הכל בעגלה</span>;
-  }
-  return (
-    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-accent-bg text-accent-dark">
-      <span className="w-1.5 h-1.5 rounded-full bg-accent-dark" />
-      <span className="ltr">{ticked} מתוך {total}</span>
-    </span>
-  );
-}
-
-function ListCard({ list, onOpen, ticked, total, onDelete }: { list: ListWithProgress; onOpen: () => void; ticked: number; total: number; onDelete: () => void }) {
-  const type = listTypeNames[list.type];
-  const pct = total ? Math.round((ticked / total) * 100) : 0;
-  const [swipeX, setSwipeX] = useState(0);
-  const startX = useRef(0);
-  const startTime = useRef(0);
-  const isDragging = useRef(false);
-  const justFinishedDrag = useRef(false);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    startX.current = e.touches[0].clientX;
-    startTime.current = Date.now();
-    isDragging.current = false;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const currentX = e.touches[0].clientX;
-    const diff = currentX - startX.current;
-
-    if (Math.abs(diff) > 5) {
-      isDragging.current = true;
-    }
-
-    if (isDragging.current) {
-      // Allow swipe in both directions from any position
-      const newX = swipeX === 120 ? 120 + diff : diff;
-      setSwipeX(Math.max(0, Math.min(newX, 120)));
-    }
-  };
-
-  const handleTouchEnd = () => {
-    const timeDiff = Date.now() - startTime.current;
-    const velocity = swipeX / timeDiff;
-
-    const shouldOpen = velocity > 0.5 || swipeX > 60;
-
-    if (shouldOpen) {
-      setSwipeX(120);
-    } else {
-      setSwipeX(0);
-    }
-
-    if (isDragging.current) {
-      justFinishedDrag.current = true;
-      setTimeout(() => {
-        justFinishedDrag.current = false;
-      }, 200);
-    }
-    isDragging.current = false;
-  };
-
-  const handleCardClick = () => {
-    if (justFinishedDrag.current) return;
-    if (swipeX > 0) {
-      setSwipeX(0);
-      return;
-    }
-    onOpen();
-  };
-
-  return (
-    <div
-      className="relative overflow-hidden rounded-xl"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      {/* Red delete background (revealed when card slides right) */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete();
-        }}
-        className="absolute inset-y-0 left-0 flex items-center justify-center bg-red-500 transition-opacity"
-        style={{
-          width: `${Math.max(swipeX, 0)}px`,
-          opacity: swipeX > 0 ? 1 : 0,
-          pointerEvents: swipeX >= 120 ? 'auto' : 'none',
-        }}
-      >
-        {swipeX >= 60 && <Trash2 size={24} className="text-white" />}
-      </button>
-
-      {/* Card content */}
-      <button
-        onClick={handleCardClick}
-        className="relative w-full bg-surface rounded-xl p-4 border-0 cursor-pointer shadow-card text-right flex flex-col gap-3 font-inherit text-inherit color-inherit"
-        style={{
-          transform: `translateX(${swipeX}px)`,
-          transition: isDragging.current ? 'none' : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
-        }}
-      >
-        <div className="flex items-start gap-3">
-          <div
-            className="w-14 h-14 rounded-lg flex items-center justify-center text-2xl flex-shrink-0"
-            style={{ background: type.tint }}
-          >
-            <EmojiIcon emoji={type.emoji} />
-          </div>
-          <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-            <div className="text-lg font-bold leading-tight truncate">{list.name}</div>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
-                style={{ background: type.tint, color: '#1C1B17' }}
-              >
-                <EmojiIcon emoji={type.emoji} />
-                {type.label}
-              </span>
-              <ProgressBadge ticked={ticked} total={total} />
-            </div>
-            <div className="text-xs font-medium text-ink-50">{list.created_at ? new Date(list.created_at).toLocaleDateString('he-IL') : 'חדש'}</div>
-          </div>
-          <div className="text-ink-30 mt-3">
-            <ChevronLeft size={20} />
-          </div>
-        </div>
-        {total > 0 && ticked > 0 && (
-          <div className="h-1 rounded-full bg-ink-06 overflow-hidden">
-            <div
-              className="h-full bg-accent rounded-full transition-all"
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-        )}
-      </button>
     </div>
   );
 }

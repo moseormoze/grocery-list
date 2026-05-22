@@ -188,3 +188,60 @@ describe('ListCard — press feedback', () => {
     expect(card.style.transition).toContain('background-color 120ms');
   });
 });
+
+describe('ListCard — rubber-band & spring (T3)', () => {
+  it('translates 1:1 with finger up to 120px', () => {
+    const { container } = renderCard();
+    const root = getGestureRoot(container);
+    const card = getCardButton(container);
+
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+    fireEvent.touchMove(root, { touches: [{ clientX: 100, clientY: 0 }] });
+
+    expect(card.style.transform).toContain('translateX(100px)');
+  });
+
+  it('applies rubber-band resistance past 120px (factor 0.3)', () => {
+    const { container } = renderCard();
+    const root = getGestureRoot(container);
+    const card = getCardButton(container);
+
+    // Target 150 → overflow 30 → 120 + 30*0.3 = 129
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+    fireEvent.touchMove(root, { touches: [{ clientX: 150, clientY: 0 }] });
+
+    expect(card.style.transform).toContain('translateX(129px)');
+  });
+
+  it('caps rubber-band at 180px even for very large swipes', () => {
+    const { container } = renderCard();
+    const root = getGestureRoot(container);
+    const card = getCardButton(container);
+
+    // Target 600 → overflow 480 → 120 + 480*0.3 = 264 → capped at 180
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+    fireEvent.touchMove(root, { touches: [{ clientX: 600, clientY: 0 }] });
+
+    expect(card.style.transform).toContain('translateX(180px)');
+  });
+
+  it('uses the spring cubic-bezier easing in its transition', () => {
+    const { container } = renderCard();
+    const card = getCardButton(container);
+    expect(card.style.transition).toContain('cubic-bezier(0.34, 1.56, 0.64, 1)');
+    expect(card.style.transition).toContain('250ms');
+  });
+
+  it('captures startSwipeX so a fresh touch with diff=10 yields swipeX=10 (not absolute clientX)', () => {
+    // Regression guard: the math is relative to current swipeX, not clientX.
+    const { container } = renderCard();
+    const root = getGestureRoot(container);
+    const card = getCardButton(container);
+
+    // Start at clientX=500 (mid-screen). Diff 10 should yield swipeX 10, not 510.
+    fireEvent.touchStart(root, { touches: [{ clientX: 500, clientY: 0 }] });
+    fireEvent.touchMove(root, { touches: [{ clientX: 510, clientY: 0 }] });
+
+    expect(card.style.transform).toContain('translateX(10px)');
+  });
+});

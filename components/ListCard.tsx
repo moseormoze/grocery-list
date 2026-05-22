@@ -35,12 +35,14 @@ export function ListCard({ list, onOpen, ticked, total, onDelete }: { list: List
   const [swipeX, setSwipeX] = useState(0);
   const [isPressed, setIsPressed] = useState(false);
   const startX = useRef(0);
+  const startSwipeX = useRef(0);
   const startTime = useRef(0);
   const isDragging = useRef(false);
   const justFinishedDrag = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
+    startSwipeX.current = swipeX;
     startTime.current = Date.now();
     isDragging.current = false;
     setIsPressed(true);
@@ -56,8 +58,17 @@ export function ListCard({ list, onOpen, ticked, total, onDelete }: { list: List
     }
 
     if (isDragging.current) {
-      const newX = swipeX === 120 ? 120 + diff : diff;
-      setSwipeX(Math.max(0, Math.min(newX, 120)));
+      const target = startSwipeX.current + diff;
+      let next: number;
+      if (target <= 0) {
+        next = 0;
+      } else if (target <= 120) {
+        next = target;
+      } else {
+        // Rubber-band: each pixel past 120 contributes 0.3, capped at 180.
+        next = Math.min(120 + (target - 120) * 0.3, 180);
+      }
+      setSwipeX(next);
     }
   };
 
@@ -124,7 +135,7 @@ export function ListCard({ list, onOpen, ticked, total, onDelete }: { list: List
           backgroundColor: isPressed ? 'rgba(28,27,23,0.06)' : undefined,
           transition: isDragging.current
             ? 'none'
-            : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), background-color 120ms ease-out',
+            : 'transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1), background-color 120ms ease-out',
         }}
       >
         <div className="flex items-start gap-3">

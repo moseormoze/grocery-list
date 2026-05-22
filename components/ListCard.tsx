@@ -33,6 +33,7 @@ export function ListCard({ list, onOpen, ticked, total, onDelete }: { list: List
   const type = listTypeNames[list.type];
   const pct = total ? Math.round((ticked / total) * 100) : 0;
   const [swipeX, setSwipeX] = useState(0);
+  const [isPressed, setIsPressed] = useState(false);
   const startX = useRef(0);
   const startTime = useRef(0);
   const isDragging = useRef(false);
@@ -42,6 +43,7 @@ export function ListCard({ list, onOpen, ticked, total, onDelete }: { list: List
     startX.current = e.touches[0].clientX;
     startTime.current = Date.now();
     isDragging.current = false;
+    setIsPressed(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -50,6 +52,7 @@ export function ListCard({ list, onOpen, ticked, total, onDelete }: { list: List
 
     if (Math.abs(diff) > 5) {
       isDragging.current = true;
+      setIsPressed(false);
     }
 
     if (isDragging.current) {
@@ -77,6 +80,7 @@ export function ListCard({ list, onOpen, ticked, total, onDelete }: { list: List
       }, 200);
     }
     isDragging.current = false;
+    setIsPressed(false);
   };
 
   const handleCardClick = () => {
@@ -116,8 +120,11 @@ export function ListCard({ list, onOpen, ticked, total, onDelete }: { list: List
         onClick={handleCardClick}
         className="relative w-full bg-surface rounded-xl p-4 border-0 cursor-pointer shadow-card text-right flex flex-col gap-3 font-inherit text-inherit color-inherit"
         style={{
-          transform: `translateX(${swipeX}px)`,
-          transition: isDragging.current ? 'none' : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+          transform: `translateX(${swipeX}px)${isPressed ? ' scale(0.965)' : ''}`,
+          backgroundColor: isPressed ? 'rgba(28,27,23,0.06)' : undefined,
+          transition: isDragging.current
+            ? 'none'
+            : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), background-color 120ms ease-out',
         }}
       >
         <div className="flex items-start gap-3">

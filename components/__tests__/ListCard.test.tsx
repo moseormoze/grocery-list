@@ -144,3 +144,47 @@ describe('ListCard — interactions', () => {
     expect(props.onOpen).not.toHaveBeenCalled();
   });
 });
+
+describe('ListCard — press feedback', () => {
+  it('applies scale and ink-06 background on touchStart', () => {
+    const { container } = renderCard();
+    const root = getGestureRoot(container);
+    const card = getCardButton(container);
+
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+
+    expect(card.style.transform).toContain('scale(0.965)');
+    expect(card.style.backgroundColor).toMatch(/rgba\(28,\s*27,\s*23,\s*0\.06\)/);
+  });
+
+  it('clears press state on touchEnd', () => {
+    const { container } = renderCard();
+    const root = getGestureRoot(container);
+    const card = getCardButton(container);
+
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+    fireEvent.touchEnd(root, { changedTouches: [{ clientX: 0, clientY: 0 }] });
+
+    expect(card.style.transform).not.toContain('scale');
+    expect(card.style.backgroundColor).toBe('');
+  });
+
+  it('clears press state once a drag starts (diff > 5px)', () => {
+    const { container } = renderCard();
+    const root = getGestureRoot(container);
+    const card = getCardButton(container);
+
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+    expect(card.style.transform).toContain('scale(0.965)');
+
+    fireEvent.touchMove(root, { touches: [{ clientX: 20, clientY: 0 }] });
+    expect(card.style.transform).not.toContain('scale');
+    expect(card.style.backgroundColor).toBe('');
+  });
+
+  it('includes background-color in the transition declaration', () => {
+    const { container } = renderCard();
+    const card = getCardButton(container);
+    expect(card.style.transition).toContain('background-color 120ms');
+  });
+});

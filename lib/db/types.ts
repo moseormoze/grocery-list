@@ -22,6 +22,11 @@ export interface List {
   updated_at: string;
 }
 
+export interface ListWithProgress extends List {
+  tickedCount?: number;
+  totalCount?: number;
+}
+
 export interface Item {
   id: string;
   list_id: string;

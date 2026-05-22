@@ -1,0 +1,146 @@
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { ListCard } from '../ListCard';
+import type { ListWithProgress } from '@/lib/db/types';
+
+const mockList: ListWithProgress = {
+  id: 'list-1',
+  name: 'רשימת השבת',
+  type: 'supermarket',
+  household_id: 'hh-1',
+  created_at: '2026-05-22T10:00:00Z',
+  updated_at: '2026-05-22T10:00:00Z',
+};
+
+function renderCard(overrides: Partial<Parameters<typeof ListCard>[0]> = {}) {
+  const props = {
+    list: mockList,
+    ticked: 0,
+    total: 0,
+    onOpen: vi.fn(),
+    onDelete: vi.fn(),
+    ...overrides,
+  };
+  return { ...render(<ListCard {...props} />), props };
+}
+
+function getCardButton(container: HTMLElement): HTMLButtonElement {
+  // The card content button is the second button in the rendered tree
+  // (first is the red delete background).
+  const buttons = container.querySelectorAll('button');
+  return buttons[1] as HTMLButtonElement;
+}
+
+function getDeleteButton(container: HTMLElement): HTMLButtonElement {
+  return container.querySelectorAll('button')[0] as HTMLButtonElement;
+}
+
+function getGestureRoot(container: HTMLElement): HTMLDivElement {
+  return container.querySelector('div.relative.overflow-hidden') as HTMLDivElement;
+}
+
+describe('ListCard — rendering', () => {
+  it('renders the list name', () => {
+    renderCard({ list: { ...mockList, name: 'קניות לסוף שבוע' } });
+    expect(screen.getByText('קניות לסוף שבוע')).toBeTruthy();
+  });
+
+  it('renders the supermarket type label', () => {
+    renderCard({ list: { ...mockList, type: 'supermarket' } });
+    expect(screen.getByText('סופר')).toBeTruthy();
+  });
+
+  it('renders the pharmacy type label', () => {
+    renderCard({ list: { ...mockList, type: 'pharmacy' } });
+    expect(screen.getByText('פארם')).toBeTruthy();
+  });
+
+  it('renders the house type label', () => {
+    renderCard({ list: { ...mockList, type: 'house' } });
+    expect(screen.getByText('בית')).toBeTruthy();
+  });
+
+  it('shows the empty badge when total is 0', () => {
+    renderCard({ ticked: 0, total: 0 });
+    expect(screen.getByText('ריקה')).toBeTruthy();
+  });
+
+  it('shows the "X items" badge when total > 0 and ticked === 0', () => {
+    renderCard({ ticked: 0, total: 8 });
+    expect(screen.getByText('8 פריטים')).toBeTruthy();
+  });
+
+  it('shows the "all in cart" badge when ticked equals total', () => {
+    renderCard({ ticked: 5, total: 5 });
+    expect(screen.getByText('הכל בעגלה')).toBeTruthy();
+  });
+
+  it('shows the progress badge with counts when partial', () => {
+    renderCard({ ticked: 3, total: 10 });
+    expect(screen.getByText('3 מתוך 10')).toBeTruthy();
+  });
+
+  it('does not render a progress bar when total is 0', () => {
+    const { container } = renderCard({ ticked: 0, total: 0 });
+    expect(container.querySelector('.bg-accent.rounded-full')).toBeNull();
+  });
+
+  it('renders a progress bar with correct width when partial', () => {
+    const { container } = renderCard({ ticked: 3, total: 10 });
+    const bar = container.querySelector('.bg-accent.rounded-full') as HTMLElement;
+    expect(bar).toBeTruthy();
+    expect(bar.style.width).toBe('30%');
+  });
+
+  it('renders the Hebrew date when created_at is present', () => {
+    renderCard({ list: { ...mockList, created_at: '2026-05-22T10:00:00Z' } });
+    const expected = new Date('2026-05-22T10:00:00Z').toLocaleDateString('he-IL');
+    expect(screen.getByText(expected)).toBeTruthy();
+  });
+});
+
+describe('ListCard — interactions', () => {
+  it('calls onOpen when the card is clicked without a drag', () => {
+    const { props, container } = renderCard();
+    fireEvent.click(getCardButton(container));
+    expect(props.onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it('snaps to revealed (120px) on a swipe past 60px and exposes delete', () => {
+    const { props, container } = renderCard();
+    const root = getGestureRoot(container);
+
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+    fireEvent.touchMove(root, { touches: [{ clientX: 80, clientY: 0 }] });
+    fireEvent.touchEnd(root, { changedTouches: [{ clientX: 80, clientY: 0 }] });
+
+    const card = getCardButton(container);
+    expect(card.style.transform).toBe('translateX(120px)');
+
+    fireEvent.click(getDeleteButton(container));
+    expect(props.onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onDelete on a short swipe', () => {
+    const { props, container } = renderCard();
+    const root = getGestureRoot(container);
+
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+    fireEvent.touchMove(root, { touches: [{ clientX: 30, clientY: 0 }] });
+    fireEvent.touchEnd(root, { changedTouches: [{ clientX: 30, clientY: 0 }] });
+
+    expect(props.onDelete).not.toHaveBeenCalled();
+  });
+
+  it('does not call onOpen on a swipe-then-tap (justFinishedDrag guard)', () => {
+    const { props, container } = renderCard();
+    const root = getGestureRoot(container);
+
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+    fireEvent.touchMove(root, { touches: [{ clientX: 30, clientY: 0 }] });
+    fireEvent.touchEnd(root, { changedTouches: [{ clientX: 30, clientY: 0 }] });
+    fireEvent.click(getCardButton(container));
+
+    expect(props.onOpen).not.toHaveBeenCalled();
+  });
+});

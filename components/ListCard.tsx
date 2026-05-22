@@ -5,6 +5,8 @@ import { ChevronLeft, Trash2 } from 'lucide-react';
 import { EmojiIcon } from '@/lib/icon-map';
 import type { ListWithProgress } from '@/lib/db/types';
 
+const COMMIT_THRESHOLD = 150;
+
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
   supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
   pharmacy: { label: 'פארם', emoji: '💊', tint: '#E4EEF3' },
@@ -73,6 +75,21 @@ export function ListCard({ list, onOpen, ticked, total, onDelete }: { list: List
   };
 
   const handleTouchEnd = () => {
+    if (swipeX >= COMMIT_THRESHOLD) {
+      // Full-swipe commit: fire onDelete immediately, no second tap needed.
+      // Per design option 3, leave swipeX at its current value; the modal
+      // takes over the UI and a tap on the card body closes the swipe if
+      // the user cancels.
+      onDelete();
+      justFinishedDrag.current = true;
+      setTimeout(() => {
+        justFinishedDrag.current = false;
+      }, 200);
+      isDragging.current = false;
+      setIsPressed(false);
+      return;
+    }
+
     const timeDiff = Date.now() - startTime.current;
     const velocity = swipeX / timeDiff;
 
@@ -116,11 +133,13 @@ export function ListCard({ list, onOpen, ticked, total, onDelete }: { list: List
           e.stopPropagation();
           onDelete();
         }}
-        className="absolute inset-y-0 left-0 flex items-center justify-center bg-red-500 transition-opacity"
+        className="absolute inset-y-0 left-0 flex items-center justify-center transition-all"
         style={{
           width: `${Math.max(swipeX, 0)}px`,
           opacity: swipeX > 0 ? 1 : 0,
           pointerEvents: swipeX >= 120 ? 'auto' : 'none',
+          // red-600 once past the commit threshold, red-500 below.
+          backgroundColor: swipeX >= COMMIT_THRESHOLD ? '#dc2626' : '#ef4444',
         }}
       >
         {swipeX >= 60 && <Trash2 size={24} className="text-white" />}

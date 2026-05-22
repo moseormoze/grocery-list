@@ -245,3 +245,65 @@ describe('ListCard — rubber-band & spring (T3)', () => {
     expect(card.style.transform).toContain('translateX(10px)');
   });
 });
+
+describe('ListCard — swipe-to-commit (T4)', () => {
+  it('fires onDelete on touchEnd when swiped past the commit threshold (150px)', () => {
+    // diff=220 → target=220 → rubber-band: 120 + (220-120)*0.3 = 150 (== threshold)
+    const { props, container } = renderCard();
+    const root = getGestureRoot(container);
+
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+    fireEvent.touchMove(root, { touches: [{ clientX: 220, clientY: 0 }] });
+    fireEvent.touchEnd(root, { changedTouches: [{ clientX: 220, clientY: 0 }] });
+
+    expect(props.onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fire onDelete when released below the commit threshold', () => {
+    // diff=130 → target=130 → rubber-band: 120 + 10*0.3 = 123 (< 150)
+    const { props, container } = renderCard();
+    const root = getGestureRoot(container);
+
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+    fireEvent.touchMove(root, { touches: [{ clientX: 130, clientY: 0 }] });
+    fireEvent.touchEnd(root, { changedTouches: [{ clientX: 130, clientY: 0 }] });
+
+    expect(props.onDelete).not.toHaveBeenCalled();
+  });
+
+  it('uses red-500 (#ef4444) for the delete background while below the threshold', () => {
+    const { container } = renderCard();
+    const root = getGestureRoot(container);
+    const deleteBtn = getDeleteButton(container);
+
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+    fireEvent.touchMove(root, { touches: [{ clientX: 80, clientY: 0 }] });
+
+    // jsdom normalises hex to rgb when reading style.backgroundColor.
+    expect(deleteBtn.style.backgroundColor).toMatch(/rgb\(239,\s*68,\s*68\)|#ef4444/i);
+  });
+
+  it('deepens to red-600 (#dc2626) once swipeX reaches the commit threshold', () => {
+    const { container } = renderCard();
+    const root = getGestureRoot(container);
+    const deleteBtn = getDeleteButton(container);
+
+    // Same 220 diff that pushes swipeX to exactly 150.
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+    fireEvent.touchMove(root, { touches: [{ clientX: 220, clientY: 0 }] });
+
+    expect(deleteBtn.style.backgroundColor).toMatch(/rgb\(220,\s*38,\s*38\)|#dc2626/i);
+  });
+
+  it('does not trigger onOpen on a tap that follows a full-swipe commit (justFinishedDrag guard)', () => {
+    const { props, container } = renderCard();
+    const root = getGestureRoot(container);
+
+    fireEvent.touchStart(root, { touches: [{ clientX: 0, clientY: 0 }] });
+    fireEvent.touchMove(root, { touches: [{ clientX: 220, clientY: 0 }] });
+    fireEvent.touchEnd(root, { changedTouches: [{ clientX: 220, clientY: 0 }] });
+    fireEvent.click(getCardButton(container));
+
+    expect(props.onOpen).not.toHaveBeenCalled();
+  });
+});

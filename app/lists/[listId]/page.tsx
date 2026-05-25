@@ -7,6 +7,7 @@ import { useList } from '@/hooks/useList';
 import type { Item } from '@/lib/db/types';
 import {
   DndContext,
+  DragOverlay,
   closestCenter,
   KeyboardSensor,
   PointerSensor,
@@ -14,9 +15,9 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
@@ -32,6 +33,7 @@ import {
 } from 'lucide-react';
 import { EmojiIcon } from '@/lib/icon-map';
 import { SECTIONS_BY_TYPE } from '@/lib/categories';
+import { computeDragOutcome } from '@/lib/dnd/outcome';
 
 const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
   supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
@@ -59,6 +61,7 @@ export default function ListDetailPage() {
   const [itemSection, setItemSection] = useState('other');
   const [showConfirmTrip, setShowConfirmTrip] = useState(false);
   const [swipedItemId, setSwipedItemId] = useState<string | null>(null);
+  const [activeItem, setActiveItem] = useState<Item | null>(null);
   const touchStartRef = useRef(0);
   const touchEndRef = useRef(0);
 
@@ -185,6 +188,45 @@ export default function ListDetailPage() {
     acc[section].push(item);
     return acc;
   }, {} as Record<string, Item[]>);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const item = items.find((i) => i.id === event.active.id);
+    setActiveItem(item ?? null);
+  };
+
+  const handleDragCancel = () => {
+    setActiveItem(null);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveItem(null);
+    const { active, over } = event;
+
+    const outcome = computeDragOutcome({
+      activeId: String(active.id),
+      overId: over?.id ? String(over.id) : null,
+      items,
+    });
+
+    if (outcome.kind !== 'reorder') return;
+
+    const { orderedIds } = outcome;
+    reorderOptimistically(orderedIds);
+
+    const updates = orderedIds.map((id) => ({
+      id,
+      order_index: items.findIndex((i) => i.id === id),
+    }));
+
+    await Promise.all(
+      updates.map((update) =>
+        supabase
+          .from('items')
+          .update({ order_index: update.order_index })
+          .eq('id', update.id)
+      )
+    );
+  };
 
   function SortableItem({
     item,
@@ -417,67 +459,40 @@ export default function ListDetailPage() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            {Object.entries(groupedItems).map(([section, sectionItems]) => {
-              if (sectionItems.length === 0) return null;
-              const sectionInfo = SECTIONS_BY_TYPE[list.type][section] || SECTIONS_BY_TYPE[list.type].other;
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
+          >
+            <div className="flex flex-col gap-4">
+              {Object.entries(groupedItems).map(([section, sectionItems]) => {
+                if (sectionItems.length === 0) return null;
+                const sectionInfo = SECTIONS_BY_TYPE[list.type][section] || SECTIONS_BY_TYPE[list.type].other;
 
-              const handleDragEnd = async (event: DragEndEvent) => {
-                const { active, over } = event;
-                if (!over || active.id === over.id) return;
-
-                const oldIndex = sectionItems.findIndex((i) => i.id === active.id);
-                const newIndex = sectionItems.findIndex((i) => i.id === over.id);
-
-                if (oldIndex === -1 || newIndex === -1) return;
-
-                const reorderedItems = arrayMove(sectionItems, oldIndex, newIndex);
-                const reorderedIds = reorderedItems.map((i) => i.id);
-
-                reorderOptimistically(reorderedIds);
-
-                const updates = reorderedItems.map((item, idx) => ({
-                  id: item.id,
-                  order_index: items.findIndex((i) => i.id === reorderedIds[idx]),
-                }));
-
-                await Promise.all(
-                  updates.map((update) =>
-                    supabase
-                      .from('items')
-                      .update({ order_index: update.order_index })
-                      .eq('id', update.id)
-                  )
-                );
-              };
-
-              return (
-                <div key={section} className="flex flex-col gap-2">
-                  {/* Section Banner */}
-                  <div
-                    className="rounded-2xl p-5 flex items-center justify-between overflow-hidden relative"
-                    style={{
-                      background: sectionInfo.tint,
-                      backgroundImage: `linear-gradient(115deg, transparent 60%, rgba(255,255,255,.35) 62%, transparent 64%)`,
-                    }}
-                  >
+                return (
+                  <div key={section} className="flex flex-col gap-2">
+                    {/* Section Banner */}
                     <div
-                      className="font-bold text-base"
-                      style={{ color: sectionInfo.ink }}
+                      className="rounded-2xl p-5 flex items-center justify-between overflow-hidden relative"
+                      style={{
+                        background: sectionInfo.tint,
+                        backgroundImage: `linear-gradient(115deg, transparent 60%, rgba(255,255,255,.35) 62%, transparent 64%)`,
+                      }}
                     >
-                      {sectionInfo.name}
+                      <div
+                        className="font-bold text-base"
+                        style={{ color: sectionInfo.ink }}
+                      >
+                        {sectionInfo.name}
+                      </div>
+                      <div className="text-3xl flex items-center justify-center" style={{ transform: 'translateY(2px) rotate(-6deg)', width: '36px', height: '36px' }}>
+                        <EmojiIcon emoji={sectionInfo.emoji} />
+                      </div>
                     </div>
-                    <div className="text-3xl flex items-center justify-center" style={{ transform: 'translateY(2px) rotate(-6deg)', width: '36px', height: '36px' }}>
-                      <EmojiIcon emoji={sectionInfo.emoji} />
-                    </div>
-                  </div>
 
-                  {/* Section Items with DnD */}
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                  >
+                    {/* Section Items */}
                     <SortableContext
                       items={sectionItems.map((i) => i.id)}
                       strategy={verticalListSortingStrategy}
@@ -512,11 +527,39 @@ export default function ListDetailPage() {
                         })}
                       </div>
                     </SortableContext>
-                  </DndContext>
+                  </div>
+                );
+              })}
+            </div>
+            <DragOverlay>
+              {activeItem ? (
+                <div
+                  className="item-row edit-mode"
+                  style={{
+                    boxShadow: '0 8px 24px rgba(28,27,23,0.18)',
+                    transform: 'scale(1.02)',
+                    background: 'var(--surface, #FFFFFF)',
+                    borderRadius: '14px',
+                    cursor: 'grabbing',
+                  }}
+                >
+                  <div className="w-11 h-11 flex items-center justify-center flex-shrink-0 text-ink-30">
+                    <GripVertical size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                    <div className="item-name" dir="auto">
+                      {activeItem.name}
+                    </div>
+                    {activeItem.qty && (
+                      <div className="item-qty" dir="rtl">
+                        {activeItem.qty}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              );
-            })}
-          </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         )}
       </div>
 

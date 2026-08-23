@@ -18,9 +18,10 @@ Locked decisions. Do not revisit without a new Discovery cycle.
 | Decision | Value |
 |---|---|
 | Sharing model | Two users per list (MVP). Multi-user / multi-list deferred. |
+| Built-in list types | Supermarket, pharmacy, house, and vacation abroad. Vacation abroad is pre-populated once; the other types start empty. |
 | Auth | TBD — must support inviting a partner |
 | Item structure | TBD — name only, or name + qty + category? |
-| Check-off behavior | TBD — soft-checked, or removed? Undo window? |
+| Check-off behavior | Supermarket, pharmacy, and house lists use the existing trip flow. In vacation-abroad lists, checked means packed; checked items remain until manually changed or the list is deleted. |
 | Offline support | TBD — fully offline-first vs online-only |
 
 ## Visual & Interaction

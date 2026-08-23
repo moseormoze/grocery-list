@@ -4,6 +4,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes list-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.list-card-enter {
+  animation: list-card-enter 180ms ease-out;
+}
+
 @layer base {
   * {
     @apply m-0 p-0 box-border;

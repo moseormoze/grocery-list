@@ -32,18 +32,8 @@ import {
 } from 'lucide-react';
 import { EmojiIcon } from '@/lib/icon-map';
 import { SECTIONS_BY_TYPE } from '@/lib/categories';
-
-const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
-  supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
-  pharmacy: { label: 'פארם', emoji: '💊', tint: '#E4EEF3' },
-  house: { label: 'בית', emoji: '🏠', tint: '#F2E9D5' },
-};
-
-const PLACEHOLDERS_BY_TYPE: Record<'supermarket' | 'pharmacy' | 'house', { itemName: string; itemQty: string }> = {
-  supermarket: { itemName: 'למשל: עגבניות', itemQty: 'למשל: 1 ק״ג' },
-  pharmacy: { itemName: 'למשל: משחת שיניים', itemQty: 'למשל: 1 יחידה' },
-  house: { itemName: 'למשל: צבע לקירות', itemQty: 'למשל: 2 ליטר' },
-};
+import { LIST_TYPE_META } from '@/lib/list-types';
+import { getProgressLabel, shouldShowCompleteTrip } from '@/lib/list-progress';
 
 export default function ListDetailPage() {
   const router = useRouter();
@@ -84,9 +74,10 @@ export default function ListDetailPage() {
     );
   }
 
-  const typeInfo = listTypeNames[list.type];
+  const typeInfo = LIST_TYPE_META[list.type];
   const tickedCount = items.filter((i) => i.ticked).length;
   const totalCount = items.length;
+  const showCompleteTrip = shouldShowCompleteTrip(list.type, tickedCount);
 
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -378,13 +369,7 @@ export default function ListDetailPage() {
         <div className="px-6 py-3 flex flex-col gap-2">
           <div className="flex items-baseline justify-between">
             <div className="text-xs font-bold text-ink-70">
-              {totalCount === 0
-                ? 'רשימה ריקה'
-                : tickedCount === 0
-                ? 'בואו נתחיל'
-                : tickedCount === totalCount
-                ? 'הכל בעגלה'
-                : 'בעיצומה של הקניה'}
+              {getProgressLabel(list.type, tickedCount, totalCount)}
             </div>
             {totalCount > 0 && (
               <div className="text-xs font-bold">
@@ -522,7 +507,7 @@ export default function ListDetailPage() {
 
       {/* Floating Buttons */}
       <div className="fixed bottom-5 inset-x-4 flex flex-col gap-2">
-        {tickedCount > 0 && mode === 'browse' && (
+        {showCompleteTrip && mode === 'browse' && (
           <button
             onClick={() => setShowConfirmTrip(true)}
             className="btn btn-primary w-full"
@@ -538,7 +523,7 @@ export default function ListDetailPage() {
             setItemSection('other');
             setShowAddSheet(true);
           }}
-          className={`btn w-full ${tickedCount > 0 && mode === 'browse' ? 'btn-soft' : 'btn-accent'}`}
+          className={`btn w-full ${showCompleteTrip && mode === 'browse' ? 'btn-soft' : 'btn-accent'}`}
         >
           + הוסף פריט
         </button>
@@ -574,7 +559,7 @@ export default function ListDetailPage() {
                   type="text"
                   value={itemName}
                   onChange={(e) => setItemName(e.target.value)}
-                  placeholder={PLACEHOLDERS_BY_TYPE[list.type].itemName}
+                  placeholder={typeInfo.itemNamePlaceholder}
                   className="input"
                   autoFocus
                 />
@@ -586,7 +571,7 @@ export default function ListDetailPage() {
                   type="text"
                   value={itemQty}
                   onChange={(e) => setItemQty(e.target.value)}
-                  placeholder={PLACEHOLDERS_BY_TYPE[list.type].itemQty}
+                  placeholder={typeInfo.itemQtyPlaceholder}
                   className="input"
                 />
               </div>

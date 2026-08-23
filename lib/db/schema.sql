@@ -16,11 +16,11 @@ create table if not exists public.users (
   constraint unique_email_household unique(email, household_id)
 );
 
--- Lists: grocery lists (supermarket, pharmacy, house)
+-- Lists: shared lists by built-in type
 create table if not exists public.lists (
   id uuid default gen_random_uuid() primary key,
   name text not null,
-  type text not null check(type in ('supermarket', 'pharmacy', 'house')),
+  type text not null check(type in ('supermarket', 'pharmacy', 'house', 'vacation_abroad')),
   household_id uuid not null,
   created_at timestamp with time zone default now() not null,
   updated_at timestamp with time zone default now() not null,
@@ -69,11 +69,19 @@ create table if not exists public.invite_tokens (
 create table if not exists public.categorizations_cache (
   id uuid default gen_random_uuid() primary key,
   item_name text not null,
-  list_type text not null check(list_type in ('supermarket', 'pharmacy', 'house')),
+  list_type text not null check(list_type in ('supermarket', 'pharmacy', 'house', 'vacation_abroad')),
   section_id text not null,
   created_at timestamp with time zone default now() not null,
   constraint unique_categorization unique(item_name, list_type)
 );
+
+-- Keep type constraints current when this schema is applied to an existing project.
+alter table public.lists drop constraint if exists lists_type_check;
+alter table public.lists add constraint lists_type_check
+  check (type in ('supermarket', 'pharmacy', 'house', 'vacation_abroad'));
+alter table public.categorizations_cache drop constraint if exists categorizations_cache_list_type_check;
+alter table public.categorizations_cache add constraint categorizations_cache_list_type_check
+  check (list_type in ('supermarket', 'pharmacy', 'house', 'vacation_abroad'));
 
 -- Indexes for common queries
 create index if not exists idx_users_household on public.users(household_id);
@@ -305,3 +313,52 @@ revoke execute on function public.validate_invite_token(text) from anon, public;
 revoke execute on function public.consume_invite_token(text, uuid) from anon, public;
 grant execute on function public.validate_invite_token(text) to authenticated;
 grant execute on function public.consume_invite_token(text, uuid) to authenticated;
+
+-- Atomic list creation. The function uses the caller's permissions, so the
+-- existing list/item RLS policies validate household membership and ownership.
+create or replace function public.create_list_with_items(
+  p_name text,
+  p_type text,
+  p_household_id uuid,
+  p_items jsonb default '[]'::jsonb
+)
+returns jsonb
+language plpgsql
+set search_path = public
+as $$
+declare
+  v_list public.lists%rowtype;
+  v_result jsonb;
+begin
+  if jsonb_typeof(p_items) <> 'array' then
+    raise exception 'p_items must be a JSON array';
+  end if;
+
+  insert into public.lists (name, type, household_id)
+  values (trim(p_name), p_type, p_household_id)
+  returning * into v_list;
+
+  insert into public.items (list_id, name, qty, section_id, order_index, created_by_user_id)
+  select
+    v_list.id,
+    item ->> 'name',
+    nullif(item ->> 'qty', ''),
+    item ->> 'section_id',
+    (item ->> 'order_index')::integer,
+    auth.uid()
+  from jsonb_array_elements(p_items) as item;
+
+  select jsonb_build_object(
+    'list', to_jsonb(v_list),
+    'items', coalesce(jsonb_agg(to_jsonb(i) order by i.order_index), '[]'::jsonb)
+  )
+  into v_result
+  from public.items i
+  where i.list_id = v_list.id;
+
+  return v_result;
+end;
+$$;
+
+revoke execute on function public.create_list_with_items(text, text, uuid, jsonb) from anon, public;
+grant execute on function public.create_list_with_items(text, text, uuid, jsonb) to authenticated;

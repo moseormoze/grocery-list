@@ -39,3 +39,24 @@ describe('SECTIONS_BY_TYPE — pharmacy (unchanged)', () => {
     expect(SECTIONS_BY_TYPE.pharmacy.medicine_cabinet.name).toBe('מזווה');
   });
 });
+
+describe('SECTIONS_BY_TYPE — vacation abroad', () => {
+  const sections = SECTIONS_BY_TYPE.vacation_abroad;
+
+  it('defines the seven vacation categories in their display order', () => {
+    expect(Object.keys(sections)).toEqual([
+      'documents_money',
+      'electronics',
+      'health_toiletries',
+      'clothing_footwear',
+      'sea_pool',
+      'flight_transit',
+      'other',
+    ]);
+  });
+
+  it('keeps other available as an empty-list destination', () => {
+    expect(sections.other.name).toBe('אחר');
+    expect(sections.other.emoji).toBe('📦');
+  });
+});

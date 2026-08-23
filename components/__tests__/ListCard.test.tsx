@@ -60,6 +60,11 @@ describe('ListCard — rendering', () => {
     expect(screen.getByText('בית')).toBeTruthy();
   });
 
+  it('renders the vacation abroad type label', () => {
+    renderCard({ list: { ...mockList, type: 'vacation_abroad' } });
+    expect(screen.getByText('חופשה בחו״ל')).toBeTruthy();
+  });
+
   it('shows the empty badge when total is 0', () => {
     renderCard({ ticked: 0, total: 0 });
     expect(screen.getByText('ריקה')).toBeTruthy();
@@ -73,6 +78,16 @@ describe('ListCard — rendering', () => {
   it('shows the "all in cart" badge when ticked equals total', () => {
     renderCard({ ticked: 5, total: 5 });
     expect(screen.getByText('הכל בעגלה')).toBeTruthy();
+  });
+
+  it('shows "all packed" for a completed vacation list', () => {
+    renderCard({
+      list: { ...mockList, type: 'vacation_abroad' },
+      ticked: 46,
+      total: 46,
+    });
+    expect(screen.getByText('הכול ארוז')).toBeTruthy();
+    expect(screen.queryByText('הכל בעגלה')).toBeNull();
   });
 
   it('shows the progress badge with counts when partial', () => {

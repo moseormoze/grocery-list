@@ -23,7 +23,7 @@ Constraint: `UNIQUE(email, household_id)` — same email can't be invited twice.
 ### lists
 - `id` (uuid, PK): Unique list identifier
 - `name` (text, NOT NULL): List name (e.g., "סופר תל אביב")
-- `type` (text, NOT NULL): One of 'supermarket', 'pharmacy', 'house'
+- `type` (text, NOT NULL): One of 'supermarket', 'pharmacy', 'house', 'vacation_abroad'
 - `household_id` (uuid, FK → households): Which household owns this list
 - `created_at`, `updated_at` (timestamp): Timestamps
 
@@ -59,13 +59,17 @@ One-time invites for partners to join.
 ### categorizations_cache
 - `id` (uuid, PK): Cache entry ID
 - `item_name` (text): Item being categorized (e.g., "חלב")
-- `list_type` (text): Type of list (supermarket, pharmacy, house)
+- `list_type` (text): Type of list (supermarket, pharmacy, house, vacation_abroad)
 - `section_id` (text): Assigned section (e.g., "dairy")
 - `created_at` (timestamp): When cached
 
 Constraint: `UNIQUE(item_name, list_type)` — one assignment per item type.
 
 AI categorization results cached to avoid redundant API calls.
+
+## List Creation RPC
+
+`create_list_with_items` creates a list and its optional initial items in one transaction. It runs with the authenticated caller's RLS permissions, so a failure rolls back both the list and its items. `vacation_abroad` supplies its 46-item template; existing list types supply an empty array.
 
 ## Row Level Security (RLS)
 
@@ -91,7 +95,7 @@ This allows partners to see changes within 2s without manual refresh.
 ## Setup Instructions
 
 1. Create a Supabase project at https://supabase.com
-2. In the SQL Editor, run `schema.sql` to create all tables, indexes, and policies
+2. For a new project, run `schema.sql`. For an existing project, apply new files from `migrations/` in numeric order.
 3. Set up Supabase Auth with magic links:
    - Go to Authentication → Providers → Email
    - Enable "Email/Password" and "Magic Link"

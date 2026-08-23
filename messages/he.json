@@ -18,16 +18,29 @@
   "lists": {
     "ourLists": "הרשימות שלנו",
     "noLists": "אין רשימות עדיין",
+    "emptyDescription": "התחילו עם רשימה אחת. אפשר סופר, פארם, בית או חופשה בחו״ל.",
     "createFirst": "צור רשימה ראשונה",
     "createNew": "צור רשימה חדשה",
     "createList": "צור",
+    "creatingList": "יוצר את הרשימה…",
+    "createError": "לא הצלחנו ליצור את הרשימה. נסה שוב.",
     "cancel": "ביטול",
     "listNameLabel": "שם הרשימה",
     "listNamePlaceholder": "סופר תל אביב",
+    "vacationNamePlaceholder": "למשל: חופשה ביוון",
+    "supermarketItemPlaceholder": "למשל: עגבניות",
+    "supermarketQtyPlaceholder": "למשל: 1 ק״ג",
+    "pharmacyItemPlaceholder": "למשל: משחת שיניים",
+    "pharmacyQtyPlaceholder": "למשל: 1 יחידה",
+    "houseItemPlaceholder": "למשל: צבע לקירות",
+    "houseQtyPlaceholder": "למשל: 2 ליטר",
     "listTypeLabel": "סוג הרשימה",
     "supermarket": "סופר",
-    "pharmacy": "בית מרקחת",
-    "house": "בית"
+    "pharmacy": "פארם",
+    "house": "בית",
+    "vacationAbroad": "חופשה בחו״ל",
+    "defaultTypeSubtitle": "10 קטגוריות",
+    "vacationTypeSubtitle": "46 פריטים מוכנים · 7 קטגוריות"
   },
   "items": {
     "addItem": "הוסף פריט",
@@ -42,7 +55,17 @@
     "finishShopping": "סיימתי את הקניות?",
     "finishConfirm": "{count} פריטים שסומנו יוסרו. המשך?",
     "yes": "כן, סיימתי",
-    "empty": "אין פריטים"
+    "empty": "אין פריטים",
+    "emptyListTitle": "רשימה ריקה",
+    "emptyListDescription": "התחילו בלחיצה על \"+ הוסף פריט\"",
+    "shoppingNotStarted": "בואו נתחיל",
+    "shoppingInProgress": "בעיצומה של הקניה",
+    "shoppingComplete": "הכל בעגלה",
+    "packingNotStarted": "מתחילים לארוז",
+    "packingInProgress": "האריזה בעיצומה",
+    "packingComplete": "הכול ארוז",
+    "vacationNamePlaceholder": "למשל: מטרייה",
+    "vacationQtyPlaceholder": "למשל: 2"
   },
   "invite": {
     "invitePartner": "הזמן את השותף שלך",
@@ -59,5 +82,76 @@
     "notFound": "לא נמצא",
     "authFailed": "ההתחברות נכשלה",
     "createFailed": "יצירה נכשלה"
+  },
+  "vacationAbroad": {
+    "categories": {
+      "documentsMoney": "מסמכים וכסף",
+      "electronics": "אלקטרוניקה",
+      "healthToiletries": "רחצה ובריאות",
+      "clothingFootwear": "ביגוד והנעלה",
+      "seaPool": "ים ובריכה",
+      "flightTransit": "לטיסה ובדרך",
+      "other": "אחר"
+    },
+    "items": {
+      "documentsMoney": [
+        "דרכונים",
+        "כרטיסי טיסה",
+        "אישורי הזמנות",
+        "ביטוח נסיעות",
+        "רישיונות נהיגה",
+        "רישיון נהיגה בינלאומי",
+        "כרטיסי אשראי",
+        "מזומן מקומי"
+      ],
+      "electronics": [
+        "טלפונים",
+        "מטענים",
+        "אוזניות",
+        "סוללה ניידת",
+        "מתאם לשקע",
+        "מפצל",
+        "סים מקומי או eSIM"
+      ],
+      "healthToiletries": [
+        "מברשות שיניים",
+        "משחת שיניים",
+        "דאודורנט",
+        "כלי רחצה",
+        "תרופות אישיות",
+        "משככי כאבים",
+        "ערכת עזרה ראשונה",
+        "קרם הגנה",
+        "דוחה יתושים"
+      ],
+      "clothingFootwear": [
+        "חולצות",
+        "מכנסיים",
+        "בגדים לערב",
+        "לבנים",
+        "גרביים",
+        "בגדי שינה",
+        "בגדי ים",
+        "עליונית קלה",
+        "נעלי הליכה",
+        "סנדלים או כפכפים"
+      ],
+      "seaPool": [
+        "משקפי שמש",
+        "כובע",
+        "מגבות חוף",
+        "תיק חוף",
+        "נעלי מים",
+        "שקית אטומה למים"
+      ],
+      "flightTransit": [
+        "תיק יד",
+        "בקבוק מים",
+        "מגבונים",
+        "ג׳ל חיטוי",
+        "ספר",
+        "משחק קטן"
+      ]
+    }
   }
 }

@@ -4,16 +4,12 @@ import { useState, useRef } from 'react';
 import { ChevronLeft, Trash2 } from 'lucide-react';
 import { EmojiIcon } from '@/lib/icon-map';
 import type { ListWithProgress } from '@/lib/db/types';
+import { LIST_TYPE_META, type ListType } from '@/lib/list-types';
+import { getProgressLabel } from '@/lib/list-progress';
 
 const COMMIT_THRESHOLD = 150;
 
-const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
-  supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
-  pharmacy: { label: 'פארם', emoji: '💊', tint: '#E4EEF3' },
-  house: { label: 'בית', emoji: '🏠', tint: '#F2E9D5' },
-};
-
-function ProgressBadge({ ticked, total }: { ticked: number; total: number }) {
+function ProgressBadge({ type, ticked, total }: { type: ListType; ticked: number; total: number }) {
   if (total === 0) {
     return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-ink-06 text-ink-70">ריקה</span>;
   }
@@ -21,7 +17,7 @@ function ProgressBadge({ ticked, total }: { ticked: number; total: number }) {
     return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-ink-06 text-ink-70">{total} פריטים</span>;
   }
   if (ticked === total) {
-    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold" style={{ background: '#EDF2E8', color: '#46613F' }}>הכל בעגלה</span>;
+    return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold" style={{ background: '#EDF2E8', color: '#46613F' }}>{getProgressLabel(type, ticked, total)}</span>;
   }
   return (
     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-accent-bg text-accent-dark">
@@ -32,7 +28,7 @@ function ProgressBadge({ ticked, total }: { ticked: number; total: number }) {
 }
 
 export function ListCard({ list, onOpen, ticked, total, onDelete }: { list: ListWithProgress; onOpen: () => void; ticked: number; total: number; onDelete: () => void }) {
-  const type = listTypeNames[list.type];
+  const type = LIST_TYPE_META[list.type];
   const pct = total ? Math.round((ticked / total) * 100) : 0;
   const [swipeX, setSwipeX] = useState(0);
   const [isPressed, setIsPressed] = useState(false);
@@ -174,7 +170,7 @@ export function ListCard({ list, onOpen, ticked, total, onDelete }: { list: List
                 <EmojiIcon emoji={type.emoji} />
                 {type.label}
               </span>
-              <ProgressBadge ticked={ticked} total={total} />
+              <ProgressBadge type={list.type} ticked={ticked} total={total} />
             </div>
             <div className="text-xs font-medium text-ink-50">{list.created_at ? new Date(list.created_at).toLocaleDateString('he-IL') : 'חדש'}</div>
           </div>

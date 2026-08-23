@@ -1,4 +1,7 @@
-export type ListType = 'supermarket' | 'pharmacy' | 'house';
+import messages from '@/messages/he.json';
+import type { ListType } from './list-types';
+
+export type { ListType } from './list-types';
 
 export type SectionInfo = {
   name: string;
@@ -37,5 +40,14 @@ export const SECTIONS_BY_TYPE: Record<ListType, Record<string, SectionInfo>> = {
     tools: { name: 'כלים וחומרים', emoji: '🪛', tint: '#FAE7CB', ink: '#A86220' },
     storage: { name: 'איחסון', emoji: '📦', tint: '#E8F1DD', ink: '#4F6E32' },
     other: { name: 'אחר', emoji: '📦', tint: '#ECEAE5', ink: '#5A554B' },
+  },
+  vacation_abroad: {
+    documents_money: { name: messages.vacationAbroad.categories.documentsMoney, emoji: '📄', tint: '#E7F1F7', ink: '#3B6C8C' },
+    electronics: { name: messages.vacationAbroad.categories.electronics, emoji: '🔋', tint: '#E6E2F0', ink: '#564B86' },
+    health_toiletries: { name: messages.vacationAbroad.categories.healthToiletries, emoji: '🧴', tint: '#F7E2E8', ink: '#A24566' },
+    clothing_footwear: { name: messages.vacationAbroad.categories.clothingFootwear, emoji: '👕', tint: '#F2E9D5', ink: '#8A6A2B' },
+    sea_pool: { name: messages.vacationAbroad.categories.seaPool, emoji: '🏖️', tint: '#DEEFEC', ink: '#3E7C76' },
+    flight_transit: { name: messages.vacationAbroad.categories.flightTransit, emoji: '✈️', tint: '#FAE7CB', ink: '#A86220' },
+    other: { name: messages.vacationAbroad.categories.other, emoji: '📦', tint: '#ECEAE5', ink: '#5A554B' },
   },
 };

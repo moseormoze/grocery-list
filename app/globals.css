@@ -19,6 +19,39 @@
   animation: list-card-enter 180ms ease-out;
 }
 
+.copy-list-header { position: relative; }
+.copy-list-control { flex-shrink: 0; }
+.copy-list-button:focus-visible { outline: 2px solid #C77858; outline-offset: 2px; }
+.copy-list-button[aria-disabled="true"] { opacity: 0.45; cursor: default; background: transparent; }
+.copy-list-tooltip, .copy-list-feedback {
+  position: absolute;
+  inset-inline-end: 16px;
+  top: calc(100% + 6px);
+  z-index: 30;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: #1C1B17;
+  color: #FAF6EE;
+  font-size: 13px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.12);
+  pointer-events: none;
+}
+.copy-list-tooltip { opacity: 0; visibility: hidden; transition: opacity 150ms; }
+.copy-list-control[data-tooltip-visible="true"]:is(:hover, :focus-within) .copy-list-tooltip { opacity: 1; visibility: visible; }
+.copy-list-feedback { display: flex; align-items: center; gap: 6px; animation: copy-list-enter 150ms ease-out; }
+.copy-list-feedback svg { flex-shrink: 0; }
+.copy-list-feedback[data-state="error"] { background: #B14A33; color: #fff; }
+.copy-list-feedback[data-state="success"] { animation: copy-list-success 2400ms ease-out; }
+.copy-list-spinner { animation: copy-list-spin 900ms linear infinite; }
+@keyframes copy-list-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes copy-list-success { 0%, 100% { opacity: 0; } 6.25%, 93.75% { opacity: 1; } }
+@keyframes copy-list-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .copy-list-button, .copy-list-tooltip, .copy-list-feedback, .copy-list-spinner { animation: none !important; transition: none !important; }
+}
+
 @layer base {
   * {
     @apply m-0 p-0 box-border;

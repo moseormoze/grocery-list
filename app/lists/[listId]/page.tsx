@@ -34,6 +34,9 @@ import { EmojiIcon } from '@/lib/icon-map';
 import { SECTIONS_BY_TYPE } from '@/lib/categories';
 import { LIST_TYPE_META } from '@/lib/list-types';
 import { getProgressLabel, shouldShowCompleteTrip } from '@/lib/list-progress';
+import { formatCopyList } from '@/lib/copy-list';
+import { CopyListButton } from './CopyListButton';
+import messages from '@/messages/he.json';
 
 export default function ListDetailPage() {
   const router = useRouter();
@@ -337,11 +340,11 @@ export default function ListDetailPage() {
   return (
     <div className="min-h-screen bg-cream pb-32 flex flex-col">
       {/* Top Bar */}
-      <div className="px-4 py-3 bg-cream border-b border-ink-06">
+      <div className="copy-list-header px-4 py-3 bg-cream border-b border-ink-06">
         <div className="flex items-center gap-2">
           <button
             onClick={() => router.back()}
-            className="icon-btn text-xl"
+            className="icon-btn text-xl flex-shrink-0"
           >
             <ArrowRight />
           </button>
@@ -355,9 +358,12 @@ export default function ListDetailPage() {
             <div className="font-bold text-base truncate">{list.name}</div>
             <div className="text-xs text-ink-50">{typeInfo.label} · משותפת</div>
           </div>
+          {list.type === 'supermarket' && (
+            <CopyListButton key={listId} text={formatCopyList(Object.values(groupedItems).flat())} />
+          )}
           <button
             onClick={() => setMode(mode === 'browse' ? 'edit' : 'browse')}
-            className="btn btn-soft text-sm px-4"
+            className="btn btn-soft text-sm px-4 flex-shrink-0"
           >
             {mode === 'edit' ? 'בוצע' : 'ערוך'}
           </button>
@@ -398,7 +404,7 @@ export default function ListDetailPage() {
             </div>
             <div className="flex flex-col gap-2">
               <h2 className="text-lg font-bold">רשימה ריקה</h2>
-              <p className="text-xs text-ink-70">התחילו בלחיצה על "+ הוסף פריט"</p>
+              <p className="text-xs text-ink-70">{messages.items.emptyListDescription}</p>
             </div>
           </div>
         ) : (

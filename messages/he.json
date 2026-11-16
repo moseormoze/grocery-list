@@ -67,6 +67,13 @@
     "vacationNamePlaceholder": "למשל: מטרייה",
     "vacationQtyPlaceholder": "למשל: 2"
   },
+  "copyList": {
+    "label": "העתק רשימה",
+    "pending": "מעתיק…",
+    "success": "הרשימה הועתקה",
+    "empty": "אין פריטים לקנייה",
+    "error": "לא הצלחנו להעתיק. נסו שוב"
+  },
   "invite": {
     "invitePartner": "הזמן את השותף שלך",
     "inviteLink": "קישור הזמנה",

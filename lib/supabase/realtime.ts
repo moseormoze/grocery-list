@@ -10,7 +10,8 @@ export type RealtimeCallback = (payload: RealtimePostgresChangesPayload<Item>) =
  */
 export function subscribeToListItems(
   listId: string,
-  onItemsChange: RealtimeCallback
+  onItemsChange: RealtimeCallback,
+  onPostgresReady?: () => void
 ): RealtimeChannel | null {
   if (!listId) {
     console.warn('subscribeToListItems: listId is required');
@@ -29,6 +30,9 @@ export function subscribeToListItems(
       },
       onItemsChange
     )
+    .on('system', {}, (event: { extension?: string; status?: string }) => {
+      if (event.extension === 'postgres_changes' && event.status === 'ok') onPostgresReady?.()
+    })
     .subscribe((status) => {
       if (status === 'SUBSCRIBED') {
         console.log(`Subscribed to items in list ${listId}`);

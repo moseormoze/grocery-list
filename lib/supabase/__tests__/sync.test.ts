@@ -96,12 +96,12 @@ describe('Sync Logic', () => {
       });
 
       const mockUpdate = vi.fn().mockReturnValueOnce({
-        error: null,
+        eq: vi.fn().mockResolvedValue({ error: null }),
       });
 
       mockSupabase.from
         .mockReturnValueOnce({ insert: mockInsert })
-        .mockReturnValueOnce({ update: mockUpdate, eq: vi.fn().mockReturnThis() });
+        .mockReturnValueOnce({ update: mockUpdate });
 
       const result = await replayOfflineMutations();
 

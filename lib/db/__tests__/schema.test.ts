@@ -29,7 +29,7 @@ describe('Database Schema', () => {
     it('should define lists table with type constraint', () => {
       expect(schemaContent).toContain('create table if not exists public.lists');
       expect(schemaContent).toContain('name text not null');
-      expect(schemaContent).toContain("type text not null check(type in ('supermarket', 'pharmacy', 'house'))");
+      expect(schemaContent).toContain("type text not null check(type in ('supermarket', 'pharmacy', 'house', 'vacation_abroad'))");
       expect(schemaContent).toContain('household_id uuid not null');
       expect(schemaContent).toContain('updated_at timestamp with time zone');
     });
@@ -64,7 +64,7 @@ describe('Database Schema', () => {
     it('should define categorizations_cache table', () => {
       expect(schemaContent).toContain('create table if not exists public.categorizations_cache');
       expect(schemaContent).toContain('item_name text not null');
-      expect(schemaContent).toContain("list_type text not null check(list_type in ('supermarket', 'pharmacy', 'house'))");
+      expect(schemaContent).toContain("list_type text not null check(list_type in ('supermarket', 'pharmacy', 'house', 'vacation_abroad'))");
       expect(schemaContent).toContain('section_id text not null');
       expect(schemaContent).toContain('constraint unique_categorization unique(item_name, list_type)');
     });
@@ -187,6 +187,42 @@ describe('Database Schema', () => {
       expect(schemaContent).toContain('grant execute on function public.consume_invite_token');
       expect(schemaContent).toContain('to authenticated');
       expect(schemaContent).toContain('from anon');
+    });
+  });
+
+  describe('Atomic list creation RPC', () => {
+    it('should define create_list_with_items with list and item inserts in one function', () => {
+      const fnBody = schemaContent
+        .split('create or replace function public.create_list_with_items')[1] ?? '';
+
+      expect(fnBody).toContain('insert into public.lists');
+      expect(fnBody).toContain('insert into public.items');
+      expect(fnBody).toContain('jsonb_array_elements');
+      expect(fnBody).toContain('auth.uid()');
+    });
+
+    it('should expose create_list_with_items only to authenticated users', () => {
+      expect(schemaContent).toContain('revoke execute on function public.create_list_with_items');
+      expect(schemaContent).toContain('grant execute on function public.create_list_with_items');
+      expect(schemaContent).toContain('to authenticated');
+      expect(schemaContent).toContain('from anon');
+    });
+
+    it('should replace deployed type constraints, not only fresh-table definitions', () => {
+      expect(schemaContent).toContain('drop constraint if exists lists_type_check');
+      expect(schemaContent).toContain('drop constraint if exists categorizations_cache_list_type_check');
+      expect(schemaContent).toContain("check (type in ('supermarket', 'pharmacy', 'house', 'vacation_abroad'))");
+      expect(schemaContent).toContain("check (list_type in ('supermarket', 'pharmacy', 'house', 'vacation_abroad'))");
+    });
+
+    it('should include an incremental migration for an existing Supabase project', () => {
+      const migrationPath = path.join(__dirname, '../migrations/006_vacation_abroad.sql');
+
+      expect(fs.existsSync(migrationPath)).toBe(true);
+      const migration = fs.readFileSync(migrationPath, 'utf-8');
+      expect(migration).toContain('drop constraint if exists lists_type_check');
+      expect(migration).toContain('create or replace function public.create_list_with_items');
+      expect(migration).toContain('grant execute on function public.create_list_with_items');
     });
   });
 });

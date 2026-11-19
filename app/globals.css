@@ -4,6 +4,54 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes list-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.list-card-enter {
+  animation: list-card-enter 180ms ease-out;
+}
+
+.copy-list-header { position: relative; }
+.copy-list-control { flex-shrink: 0; }
+.copy-list-button:focus-visible { outline: 2px solid #C77858; outline-offset: 2px; }
+.copy-list-button[aria-disabled="true"] { opacity: 0.45; cursor: default; background: transparent; }
+.copy-list-tooltip, .copy-list-feedback {
+  position: absolute;
+  inset-inline-end: 16px;
+  top: calc(100% + 6px);
+  z-index: 30;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: #1C1B17;
+  color: #FAF6EE;
+  font-size: 13px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.12);
+  pointer-events: none;
+}
+.copy-list-tooltip { opacity: 0; visibility: hidden; transition: opacity 150ms; }
+.copy-list-control[data-tooltip-visible="true"]:is(:hover, :focus-within) .copy-list-tooltip { opacity: 1; visibility: visible; }
+.copy-list-feedback { display: flex; align-items: center; gap: 6px; animation: copy-list-enter 150ms ease-out; }
+.copy-list-feedback svg { flex-shrink: 0; }
+.copy-list-feedback[data-state="error"] { background: #B14A33; color: #fff; }
+.copy-list-feedback[data-state="success"] { animation: copy-list-success 2400ms ease-out; }
+.copy-list-spinner { animation: copy-list-spin 900ms linear infinite; }
+@keyframes copy-list-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes copy-list-success { 0%, 100% { opacity: 0; } 6.25%, 93.75% { opacity: 1; } }
+@keyframes copy-list-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .copy-list-button, .copy-list-tooltip, .copy-list-feedback, .copy-list-spinner { animation: none !important; transition: none !important; }
+}
+
 @layer base {
   * {
     @apply m-0 p-0 box-border;
@@ -379,3 +427,90 @@
     z-index: 50;
   }
 }
+
+.item-category-control { position: relative; }
+.input.item-category-select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: none;
+  padding-inline-end: 44px;
+}
+.item-category-chevron {
+  position: absolute;
+  inset-inline-end: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.item-category-select:disabled + .item-category-chevron { opacity: 0.3; }
+
+.item-sheet-backdrop { transition: opacity 150ms ease-out; }
+.item-sheet { transition: transform 150ms ease-out; }
+.item-sheet-closing { opacity: 0; }
+.item-sheet-closing .item-sheet { transform: translateY(12px); }
+
+.category-swish {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+}
+.category-swish-trail {
+  position: absolute;
+  inset-block-start: 40%;
+  inset-inline-start: 0;
+  width: 65%;
+  height: 5px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, transparent, #a78bfa99, #67e8f9cc, transparent);
+  box-shadow: 0 0 12px #a78bfa66;
+  animation: category-comet 500ms ease-out both;
+}
+.category-swish-star {
+  position: absolute;
+  inset-inline-start: 25%;
+  inset-block-start: 23%;
+  width: 9px;
+  height: 9px;
+  background: #a78bfa;
+  clip-path: polygon(50% 0%, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0% 50%, 38% 38%);
+  animation: category-spark 500ms ease-out both;
+}
+.category-swish-star:nth-child(3) { inset-inline-start: 50%; inset-block-start: 62%; background: #67cbdc; }
+.category-swish-star:nth-child(4) { inset-inline-start: 75%; inset-block-start: 30%; width: 6px; height: 6px; }
+@keyframes category-comet {
+  0% { transform: translateX(110%); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateX(-170%); opacity: 0; }
+}
+@keyframes category-spark {
+  0%, 15% { transform: scale(0.2); opacity: 0; }
+  35% { transform: scale(1); opacity: 0.8; }
+  100% { transform: translateX(-12px) scale(0.2); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .item-sheet-backdrop, .item-sheet { transition: none; }
+  .item-sheet-closing .item-sheet { transform: none; }
+  .category-swish { background: #a78bfa18; }
+  .category-swish-trail, .category-swish-star { display: none; animation: none; }
+}
+
+.import-sheet { position:fixed; inset:auto 0 var(--import-bottom,0px); margin:0 auto; width:min(100%,560px); max-width:100%; max-height:var(--import-height,92dvh); background:#faf6ee; color:#1c1b17; border:0; border-radius:28px 28px 0 0; padding:0; box-shadow:0 -14px 50px #1c1b1720 }
+.import-sheet[open] { display:flex; flex-direction:column; animation:list-card-enter 180ms ease-out }
+.import-sheet::backdrop { background:#1c1b1761 }
+.import-handle { width:34px; height:4px; flex:none; background:#d7d2c8; margin:10px auto 0; border-radius:99px }
+.import-body { padding:8px 20px 16px; overflow:auto; min-height:0; overscroll-behavior:contain }
+.import-footer { flex:none; border-top:1px solid #1c1b171a; padding:12px 20px max(16px,env(safe-area-inset-bottom)) }
+.input.import-input { height:clamp(120px,27dvh,230px); padding:12px 16px; line-height:1.8; resize:vertical }
+.import-row { padding:8px 4px; border:1px solid #1c1b171a; border-radius:16px; background:#fffdf9; margin-bottom:8px }
+.import-check { display:grid; place-items:center; min-width:44px; min-height:44px }
+.import-check input { width:21px; height:21px; accent-color:#ba765b }
+.import-chip { font-size:11px; padding:2px 8px; border-radius:99px }
+@media(prefers-reduced-motion:reduce){.import-sheet[open]{animation:none}}
+.import-open { min-width:44px; min-height:44px; flex-shrink:0 }
+.import-source-badge { flex:none; font-size:11px; font-weight:500; padding:2px 7px; border-radius:8px; color:#504e48; background:#efede8 }
+.import-toast { position:fixed; z-index:70; inset-inline:0; bottom:calc(110px + env(safe-area-inset-bottom)); margin-inline:auto; width:max-content; max-width:90%; padding:10px 18px; background:#1c1b17; color:#faf6ee; border-radius:99px; pointer-events:none }
+@media(prefers-reduced-motion:no-preference) { .import-fresh { animation:import-highlight 700ms ease-out } }
+@keyframes import-highlight { from { background-color:#f4b5a0 } }

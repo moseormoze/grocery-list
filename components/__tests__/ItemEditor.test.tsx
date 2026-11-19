@@ -1,0 +1,111 @@
+import React from 'react'
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import '@testing-library/jest-dom/vitest'
+import { ItemEditor } from '../ItemEditor'
+const mock = vi.hoisted(() => ({ save: vi.fn() }))
+vi.mock('@/lib/categorization/client', () => ({ saveListItem: mock.save }))
+const item = { id: 'i', list_id: 'l', name: 'סקיר', qty: '1', section_id: 'milk', ticked: false, order_index: 0, created_by_user_id: 'u', created_at: 'now', updated_at: 'now' }
+const onSaved = vi.fn()
+const onClose = vi.fn()
+function show(editing = false, type: 'supermarket' | 'pharmacy' = 'supermarket') {
+  return render(<ItemEditor listId="l" listType={type} item={editing ? item : null} orderIndex={0} onSaved={onSaved} onClose={onClose} />)
+}
+beforeEach(() => { vi.resetAllMocks(); mock.save.mockResolvedValue({ item, source: 'remembered' }) })
+afterEach(cleanup)
+describe('item editor', () => {
+  it('defaults supermarket adds to auto and prevents blank saves', () => {
+    show()
+    expect(screen.getByLabelText('קטגוריה')).toHaveValue('auto')
+    expect(screen.getByRole('button', { name: 'הוסף' })).toBeDisabled()
+  })
+  it('saves with auto intent and the original name', async () => {
+    show()
+    fireEvent.change(screen.getByLabelText('שם הפריט'), { target: { value: ' סקיר ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'הוסף' }))
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith({ item, source: 'remembered' }))
+    expect(mock.save.mock.calls[0][0]).toMatchObject({ name: ' סקיר ', mode: 'auto', listId: 'l' })
+  })
+  it('preserves category on quantity-only edits without learning a preference', async () => {
+    show(true)
+    expect(screen.getByLabelText('קטגוריה')).toHaveValue('milk')
+    fireEvent.change(screen.getByLabelText('כמות (אופציונלי)'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: 'עדכן' }))
+    await waitFor(() => expect(mock.save).toHaveBeenCalled())
+    expect(mock.save.mock.calls[0][0]).toMatchObject({ itemId: 'i', mode: 'preserve', qty: '2' })
+  })
+  it('learns an explicit category change including other, even after a name change', async () => {
+    show(true)
+    fireEvent.change(screen.getByLabelText('קטגוריה'), { target: { value: 'other' } })
+    fireEvent.change(screen.getByLabelText('שם הפריט'), { target: { value: 'סקיר וניל' } })
+    fireEvent.click(screen.getByRole('button', { name: 'עדכן' }))
+    await waitFor(() => expect(mock.save).toHaveBeenCalled())
+    expect(mock.save.mock.calls[0][0]).toMatchObject({ mode: 'manual', sectionId: 'other', name: 'סקיר וניל' })
+  })
+  it('switches back to auto explicitly', async () => {
+    show(true)
+    fireEvent.change(screen.getByLabelText('קטגוריה'), { target: { value: 'auto' } })
+    fireEvent.click(screen.getByRole('button', { name: 'עדכן' }))
+    await waitFor(() => expect(mock.save).toHaveBeenCalled())
+    expect(mock.save.mock.calls[0][0].mode).toBe('auto')
+  })
+  it('keeps fields and permits retry on failure', async () => {
+    mock.save.mockRejectedValueOnce(new Error('database error'))
+    show(true)
+    fireEvent.click(screen.getByRole('button', { name: 'עדכן' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('לא הצלחנו לשמור')
+    expect(screen.getByLabelText('שם הפריט')).toHaveValue('סקיר')
+    expect(onClose).not.toHaveBeenCalled()
+    expect(onSaved).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'עדכן' }))
+    await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1))
+  })
+  it('locks double submit, cancel, fields and Escape during save', async () => {
+    let resolve!: (result: { item: typeof item, source: string }) => void
+    mock.save.mockReturnValue(new Promise(r => { resolve = r }))
+    show(true)
+    fireEvent.click(screen.getByRole('button', { name: 'עדכן' }))
+    fireEvent.submit(screen.getByRole('form'))
+    expect(mock.save).toHaveBeenCalledTimes(1)
+    expect(screen.getByLabelText('שם הפריט')).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'ביטול' })).toBeDisabled()
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    expect(onClose).not.toHaveBeenCalled()
+    resolve({ item, source: 'remembered' })
+    await waitFor(() => expect(onSaved).toHaveBeenCalled())
+  })
+  it('does not offer auto for other list types', () => {
+    show(false, 'pharmacy')
+    expect(screen.getByLabelText('קטגוריה')).toHaveValue('other')
+    expect(screen.queryByRole('option', { name: 'סיווג אוטומטי' })).not.toBeInTheDocument()
+  })
+  it('cancel does not save and a fresh mount resets to auto', async () => {
+    const view = show(true)
+    fireEvent.click(screen.getByRole('button', { name: 'ביטול' }))
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    expect(mock.save).not.toHaveBeenCalled()
+    view.unmount()
+    show()
+    expect(screen.getByLabelText('שם הפריט')).toHaveValue('')
+    expect(screen.getByLabelText('קטגוריה')).toHaveValue('auto')
+  })
+  it('traps keyboard focus and restores it to the opener', async () => {
+    const opener = document.createElement('button')
+    document.body.append(opener)
+    opener.focus()
+    const view = show()
+    expect(screen.getByLabelText('שם הפריט')).toHaveFocus()
+    const cancel = screen.getByRole('button', { name: 'ביטול' })
+    cancel.focus()
+    fireEvent.keyDown(cancel, { key: 'Tab', shiftKey: true })
+    expect(screen.getByLabelText('קטגוריה')).toHaveFocus()
+    fireEvent.keyDown(screen.getByLabelText('קטגוריה'), { key: 'Tab' })
+    expect(cancel).toHaveFocus()
+    fireEvent.keyDown(cancel, { key: 'Escape' })
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    view.unmount()
+    expect(opener).toHaveFocus()
+    opener.remove()
+  })
+
+})

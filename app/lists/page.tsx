@@ -1,19 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import type { ListWithProgress } from '@/lib/db/types';
+import type { Item, ListWithProgress } from '@/lib/db/types';
 import { EmojiIcon } from '@/lib/icon-map';
-import { Settings } from 'lucide-react';
+import { Loader2, Settings } from 'lucide-react';
 import { InvitePartnerBanner } from '@/components/InvitePartnerBanner';
 import { ListCard } from '@/components/ListCard';
-
-const listTypeNames: Record<'supermarket' | 'pharmacy' | 'house', { label: string; emoji: string; tint: string }> = {
-  supermarket: { label: 'סופר', emoji: '🛒', tint: '#FBE5DC' },
-  pharmacy: { label: 'פארם', emoji: '💊', tint: '#E4EEF3' },
-  house: { label: 'בית', emoji: '🏠', tint: '#F2E9D5' },
-};
+import { LIST_TYPES, LIST_TYPE_META, type ListType } from '@/lib/list-types';
+import { createListWithTemplate } from '@/lib/supabase/lists';
+import { useTranslations } from '@/lib/i18n';
+import type { User as AuthUser } from '@supabase/supabase-js';
 
 function MemberDot({ bg, emoji }: { bg: string; emoji: string }) {
   return (
@@ -45,16 +43,25 @@ function CreateListButton({ onClick }: { onClick: () => void }) {
 
 export default function ListsPage() {
   const router = useRouter();
+  const { t } = useTranslations();
   const [lists, setLists] = useState<ListWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateSheet, setShowCreateSheet] = useState(false);
   const [newListName, setNewListName] = useState('');
-  const [newListType, setNewListType] = useState<'supermarket' | 'pharmacy' | 'house'>('supermarket');
-  const [user, setUser] = useState<any>(null);
+  const [newListType, setNewListType] = useState<ListType>('supermarket');
+  const [creatingList, setCreatingList] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [newlyCreatedListId, setNewlyCreatedListId] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [householdMembers, setHouseholdMembers] = useState<Array<{ name: string; emoji: string; bg: string }>>([]);
-  const [items, setItems] = useState<Record<string, any[]>>({});
+  const [items, setItems] = useState<Record<string, Item[]>>({});
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; listId: string | null; listName: string }>({ show: false, listId: null, listName: '' });
-  const [undoData, setUndoData] = useState<{ list: ListWithProgress; items: any[] } | null>(null);
+  const [undoData, setUndoData] = useState<{ list: ListWithProgress; items: Item[] } | null>(null);
+  const creationAnimationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (creationAnimationTimer.current) clearTimeout(creationAnimationTimer.current);
+  }, []);
 
   useEffect(() => {
     const checkAuthAndLoadLists = async () => {
@@ -107,7 +114,7 @@ export default function ListsPage() {
               .select('*')
               .in('list_id', listData.map((l) => l.id));
 
-            const itemsByList: Record<string, any[]> = {};
+            const itemsByList: Record<string, Item[]> = {};
             listData.forEach((l) => {
               itemsByList[l.id] = itemsData?.filter((i) => i.list_id === l.id) || [];
             });
@@ -122,10 +129,21 @@ export default function ListsPage() {
     checkAuthAndLoadLists();
   }, [router]);
 
-  const handleCreateList = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const openCreateSheet = () => {
+    setCreateError(null);
+    setShowCreateSheet(true);
+  };
 
+  const closeCreateSheet = () => {
+    setCreateError(null);
+    setShowCreateSheet(false);
+  };
+
+  const handleCreateList = async () => {
     if (!newListName.trim() || !user) return;
+
+    setCreatingList(true);
+    setCreateError(null);
 
     const { data: userData } = await supabase
       .from('users')
@@ -133,28 +151,32 @@ export default function ListsPage() {
       .eq('id', user.id)
       .single();
 
-    if (!userData?.household_id) return;
-
-    const { data: newList, error: createError } = await supabase
-      .from('lists')
-      .insert({
-        name: newListName,
-        type: newListType,
-        household_id: userData.household_id,
-      })
-      .select()
-      .single();
-
-    if (createError) {
-      console.error('Error creating list:', createError.message);
+    if (!userData?.household_id) {
+      setCreatingList(false);
+      setCreateError(t('lists.createError'));
       return;
     }
 
-    setLists([...lists, { ...newList, tickedCount: 0, totalCount: 0 }]);
-    setItems({ ...items, [newList.id]: [] });
+    const result = await createListWithTemplate({
+      name: newListName,
+      type: newListType,
+      householdId: userData.household_id,
+    });
+
+    if (!result.success) {
+      setCreatingList(false);
+      setCreateError(t('lists.createError'));
+      return;
+    }
+
+    setLists((current) => [...current, { ...result.list, tickedCount: 0, totalCount: result.items.length }]);
+    setItems((current) => ({ ...current, [result.list.id]: result.items }));
+    setNewlyCreatedListId(result.list.id);
+    creationAnimationTimer.current = setTimeout(() => setNewlyCreatedListId(null), 180);
     setShowCreateSheet(false);
     setNewListName('');
     setNewListType('supermarket');
+    setCreatingList(false);
   };
 
   const handleDeleteList = async (listId: string) => {
@@ -256,10 +278,10 @@ export default function ListsPage() {
             </div>
             <div className="flex flex-col gap-2">
               <h2 className="text-2xl font-bold">אין רשימות עדיין</h2>
-              <p className="text-sm text-ink-70 leading-relaxed">התחילו עם רשימה אחת. אפשר סופר, בית מרקחת או בית.</p>
+              <p className="text-sm text-ink-70 leading-relaxed">{t('lists.emptyDescription')}</p>
             </div>
             <button
-              onClick={() => setShowCreateSheet(true)}
+              onClick={openCreateSheet}
               className="btn btn-accent"
             >
               צור רשימה ראשונה
@@ -271,17 +293,18 @@ export default function ListsPage() {
               const listItems = items[list.id] || [];
               const ticked = listItems.filter((i) => i.ticked).length;
               return (
-                <ListCard
-                  key={list.id}
-                  list={list}
-                  onOpen={() => router.push(`/lists/${list.id}`)}
-                  ticked={ticked}
-                  total={listItems.length}
-                  onDelete={() => setDeleteConfirm({ show: true, listId: list.id, listName: list.name })}
-                />
+                <div key={list.id} className={newlyCreatedListId === list.id ? 'list-card-enter' : undefined}>
+                  <ListCard
+                    list={list}
+                    onOpen={() => router.push(`/lists/${list.id}`)}
+                    ticked={ticked}
+                    total={listItems.length}
+                    onDelete={() => setDeleteConfirm({ show: true, listId: list.id, listName: list.name })}
+                  />
+                </div>
               );
             })}
-            <CreateListButton onClick={() => setShowCreateSheet(true)} />
+            <CreateListButton onClick={openCreateSheet} />
           </div>
         )}
       </div>
@@ -289,49 +312,57 @@ export default function ListsPage() {
       {/* Create List Sheet */}
       {showCreateSheet && (
         <div className="fixed inset-0 bg-black/40 flex items-end z-50">
-          <div className="w-full bg-cream rounded-t-3xl rounded-b-0 shadow-sheet max-h-4/5 overflow-y-auto">
-            <div className="flex items-center justify-between p-5 border-b border-ink-06">
+          <div className="w-full bg-cream rounded-t-3xl rounded-b-0 shadow-sheet max-h-[80vh] overflow-y-auto" aria-busy={creatingList}>
+            <div className="sticky top-0 z-10 bg-cream flex items-center justify-between p-5 border-b border-ink-06">
               <button
-                onClick={() => setShowCreateSheet(false)}
+                onClick={closeCreateSheet}
+                disabled={creatingList}
                 className="btn btn-ghost"
               >
                 ביטול
               </button>
               <h2 className="text-lg font-bold">רשימה חדשה</h2>
               <button
-                onClick={() => {
-                  if (newListName.trim()) {
-                    handleCreateList(new Event('submit') as any);
-                  }
-                }}
+                onClick={handleCreateList}
+                disabled={creatingList || !newListName.trim()}
                 className="btn btn-accent"
               >
-                צור
+                {creatingList && <Loader2 size={16} className="animate-spin" />}
+                {creatingList ? t('lists.creatingList') : t('lists.createList')}
               </button>
             </div>
 
             <div className="p-6 flex flex-col gap-5">
+              {createError && (
+                <div role="alert" className="rounded-xl bg-errorBg px-4 py-3 text-sm font-medium text-danger">
+                  {createError}
+                </div>
+              )}
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-ink-70">שם הרשימה</label>
                 <input
                   type="text"
                   value={newListName}
                   onChange={(e) => setNewListName(e.target.value)}
-                  placeholder="סופר תל אביב"
+                  placeholder={LIST_TYPE_META[newListType].listNamePlaceholder}
                   className="input"
+                  dir="auto"
+                  disabled={creatingList}
                 />
               </div>
 
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-ink-70">סוג הרשימה</label>
                 <div className="flex flex-col gap-2">
-                  {(['supermarket', 'pharmacy', 'house'] as const).map((type) => {
-                    const typeInfo = listTypeNames[type];
+                  {LIST_TYPES.map((type) => {
+                    const typeInfo = LIST_TYPE_META[type];
                     return (
                       <button
                         key={type}
                         onClick={() => setNewListType(type)}
-                        className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                        disabled={creatingList}
+                        aria-pressed={newListType === type}
+                        className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
                           newListType === type
                             ? 'bg-accent-bg border-accent-dark'
                             : 'bg-surface border-ink-10 hover:border-accent'
@@ -341,11 +372,11 @@ export default function ListsPage() {
                           className="w-12 h-12 rounded-lg flex items-center justify-center text-xl flex-shrink-0"
                           style={{ background: typeInfo.tint }}
                         >
-                          {typeInfo.emoji}
+                          <EmojiIcon emoji={typeInfo.emoji} />
                         </div>
                         <div className="flex-1 text-right">
                           <div className="font-bold text-base">{typeInfo.label}</div>
-                          <div className="text-xs text-ink-50">10 קטגוריות</div>
+                          <div className="text-xs text-ink-50">{typeInfo.createSubtitle}</div>
                         </div>
                         {newListType === type && (
                           <div className="text-accent-dark font-bold">✓</div>

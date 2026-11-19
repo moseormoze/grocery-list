@@ -23,6 +23,12 @@ import {
   Users,
   Settings,
   ChevronLeft,
+  Luggage,
+  BatteryCharging,
+  HeartPulse,
+  Shirt,
+  Umbrella,
+  Plane,
 } from 'lucide-react';
 
 const EMOJI_TO_ICON: Record<string, React.ReactNode> = {
@@ -51,6 +57,13 @@ const EMOJI_TO_ICON: Record<string, React.ReactNode> = {
   '👥': <Users size={20} />,
   '⚙': <Settings size={20} />,
   '›': <ChevronLeft size={20} />,
+  '🧳': <Luggage size={20} />,
+  '📄': <FileText size={20} />,
+  '🔋': <BatteryCharging size={20} />,
+  '🧴': <HeartPulse size={20} />,
+  '👕': <Shirt size={20} />,
+  '🏖️': <Umbrella size={20} />,
+  '✈️': <Plane size={20} />,
 };
 
 export function EmojiIcon({ emoji }: { emoji: string }) {

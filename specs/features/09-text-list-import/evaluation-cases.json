@@ -1,0 +1,158 @@
+[
+  {
+    "text": "מלפפונים, 6 יחידות, עגבניות, 4",
+    "expected": [
+      {
+        "name": "מלפפונים",
+        "qty": "6 יחידות",
+        "negated": false
+      },
+      {
+        "name": "עגבניות",
+        "qty": "4",
+        "negated": false
+      }
+    ]
+  },
+  {
+    "text": "מלפפונים שש יחידות ועגבניות ארבע",
+    "expected": [
+      {
+        "name": "מלפפונים",
+        "qty": "6 יחידות",
+        "negated": false
+      },
+      {
+        "name": "עגבניות",
+        "qty": "4",
+        "negated": false
+      }
+    ]
+  },
+  {
+    "text": "גבינה לבנה 5% חבילה אחת",
+    "expected": [
+      {
+        "name": "גבינה לבנה 5%",
+        "qty": [
+          "חבילה אחת",
+          "1 חבילה"
+        ],
+        "negated": false
+      }
+    ]
+  },
+  {
+    "text": "חלב",
+    "expected": [
+      {
+        "name": "חלב",
+        "qty": null,
+        "negated": false
+      }
+    ]
+  },
+  {
+    "text": "חצי קילו עגבניות",
+    "expected": [
+      {
+        "name": "עגבניות",
+        "qty": [
+          "חצי קילו",
+          "0.5 ק״ג",
+          "0.5 ק\"ג"
+        ],
+        "negated": false
+      }
+    ]
+  },
+  {
+    "text": "ארבע עגבניות, בעצם שש",
+    "expected": [
+      {
+        "name": "עגבניות",
+        "qty": "6",
+        "negated": false
+      }
+    ]
+  },
+  {
+    "text": "חלב לא צריך, לחם אחד",
+    "expected": [
+      {
+        "name": "חלב",
+        "qty": null,
+        "negated": true
+      },
+      {
+        "name": "לחם",
+        "qty": "1",
+        "negated": false
+      }
+    ]
+  },
+  {
+    "text": "חלב ללא לקטוז 2 קרטונים",
+    "expected": [
+      {
+        "name": "חלב ללא לקטוז",
+        "qty": "2 קרטונים",
+        "negated": false
+      }
+    ]
+  },
+  {
+    "text": "תודה רבה",
+    "expected": []
+  },
+  {
+    "text": "Oatly Barista שתי קופסאות",
+    "expected": [
+      {
+        "name": "Oatly Barista",
+        "qty": "2 קופסאות",
+        "negated": false
+      }
+    ]
+  },
+  {
+    "text": "פטרוזיליה\n2 קילו תפוחים\nטחינה גולמית",
+    "expected": [
+      {
+        "name": "פטרוזיליה",
+        "qty": null,
+        "negated": false
+      },
+      {
+        "name": "תפוחים",
+        "qty": "2 קילו",
+        "negated": false
+      },
+      {
+        "name": "טחינה גולמית",
+        "qty": null,
+        "negated": false
+      }
+    ]
+  },
+  {
+    "text": "סקיר וניל — 2 גביעים\nאורז בסמטי\nחלב 3% — קרטון",
+    "expected": [
+      {
+        "name": "סקיר וניל",
+        "qty": "2 גביעים",
+        "negated": false
+      },
+      {
+        "name": "אורז בסמטי",
+        "qty": null,
+        "negated": false
+      },
+      {
+        "name": "חלב 3%",
+        "qty": "קרטון",
+        "negated": false
+      }
+    ]
+  }
+]

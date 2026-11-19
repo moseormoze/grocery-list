@@ -8,6 +8,7 @@ import * as realtime from '@/lib/supabase/realtime';
 vi.mock('@/lib/supabase/client', () => ({
   supabase: {
     from: vi.fn(),
+    realtime: {setAuth: vi.fn().mockResolvedValue(undefined)},
   },
 }));
 
@@ -215,7 +216,7 @@ describe('useList Hook', () => {
       renderHook(() => useList('list-1'));
 
       await waitFor(() => {
-        expect(mockSubscribeItems).toHaveBeenCalledWith('list-1', expect.any(Function));
+        expect(mockSubscribeItems).toHaveBeenCalledWith('list-1', expect.any(Function), expect.any(Function));
       });
     });
 
@@ -248,9 +249,8 @@ describe('useList Hook', () => {
 
       const { unmount } = renderHook(() => useList('list-1'));
 
-      await waitFor(() => {
-        unmount();
-      });
+      await waitFor(() => expect(realtime.subscribeToListItems).toHaveBeenCalled());
+      unmount();
 
       await waitFor(() => {
         expect(realtime.unsubscribeFromChannel).toHaveBeenCalledWith(mockChannel);

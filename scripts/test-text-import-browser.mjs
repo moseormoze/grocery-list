@@ -24,7 +24,7 @@ await admin
   .then(unwrap)
 const browser = await chromium.launch()
 try {
-  async function member() {
+  async function member(label) {
     const email = randomUUID() + '@example.test'
     const password = randomUUID()
     const { user } = unwrap(
@@ -45,6 +45,13 @@ try {
     unwrap(await memberClient.auth.signInWithPassword({ email, password }))
     await context.addCookies(Array.from(cookies, ([name, value]) => ({ name, value, url: base })))
     const page = await context.newPage()
+    page.on('websocket', socket => socket.on('framereceived', frame => {
+      try {
+        const packet = JSON.parse(String(frame.payload))
+        const [topic, event, data] = Array.isArray(packet) ? packet.slice(2) : [packet.topic, packet.event, packet.payload]
+        if (event === 'system' || event === 'postgres_changes') console.log(label, topic, event, data?.message ?? data?.data?.type)
+      } catch { /* Binary control frames have no diagnostic message. */ }
+    }))
     const subscribed = page.waitForEvent('console', {
       predicate: (msg) => msg.text().includes('Subscribed to items in list'),
     })
@@ -53,7 +60,7 @@ try {
     await subscribed
     return { page, memberClient, user }
   }
-  const [a, b] = await Promise.all([member(), member()])
+  const [a, b] = await Promise.all([member('importer'), member('partner')])
   const preview = Array.from({ length: 25 }, (_, i) => ({
     name: i === 0 ? 'מלפפונים' : i === 1 ? 'Oatly Barista 3%' : 'מוצר ' + i,
     qty: i === 0 ? '6 יחידות' : null,

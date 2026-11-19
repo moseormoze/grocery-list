@@ -49,6 +49,8 @@ try {
   // Also exercise the incremental migration on an existing schema.
   await sql(await readFile(path.join(root, 'lib/db/migrations/007_auto_categorization.sql'), 'utf8'))
   await sql(await readFile(path.join(root, 'lib/db/tests/007_auto_categorization.sql'), 'utf8'))
+  await sql(await readFile(path.join(root, 'lib/db/migrations/009_text_import.sql'), 'utf8'))
+  await sql(await readFile(path.join(root, 'lib/db/tests/009_text_import.sql'), 'utf8'))
   console.log('PASS: PostgreSQL memory, normalization, rollback, preservation and RLS scenarios')
   await sql(`
     insert into public.households(id) values('81000000-0000-0000-0000-000000000001');
@@ -58,17 +60,17 @@ try {
     insert into public.lists(id,name,type,household_id) values
       ('${list}','race','supermarket','81000000-0000-0000-0000-000000000001');
   `)
-  async function race(name, secondMode, secondCategory) {
+  async function twoSessions(firstQuery, secondQuery) {
     let signal
     const held = new Promise(resolve => { signal = resolve })
     const first = sql(`begin; ${session(userA)}
-      select public.save_supermarket_item('${list}','${name}',null,'manual','milk');
+      ${firstQuery}
       select 'LOCK_HELD'; select pg_sleep(3); commit;`, output => {
         if (output.includes('LOCK_HELD')) signal()
       })
     await Promise.race([held, first.then(() => { throw new Error('Lock marker missing') })])
     const second = sql(`set application_name = 'grocery-race-B'; ${session(userB)}
-      select public.save_supermarket_item('${list}','${name}',null,'${secondMode}',${secondCategory},null,'dry','v1');`)
+      ${secondQuery}`)
     const observeContention = async () => {
       for (let attempt = 0; attempt < 20; attempt++) {
         const waiting = await sql("select exists(select from pg_stat_activity where application_name='grocery-race-B' and wait_event_type='Lock');")
@@ -80,6 +82,23 @@ try {
     const [, output] = await Promise.all([first, second, observeContention()])
     return JSON.parse(output.split('\n').at(-1))
   }
+  const manualSave = name => `select public.save_supermarket_item('${list}','${name}',null,'manual','milk');`
+  const race = (name, mode, section) => twoSessions(manualSave(name),
+    `select public.save_supermarket_item('${list}','${name}',null,'${mode}',${section},null,'dry','v1');`)
+  const batch = name => `select public.import_grocery_items('${list}',gen_random_uuid(),
+    '[{"name":"${name}","mode":"auto","sectionId":"milk"}]');`
+  for (const [name, first] of [
+    ['manual-then-import', manualSave('manual-then-import')],
+    ['import-then-import', batch('import-then-import')],
+    ['direct-then-import', `insert into public.items(list_id,name,created_by_user_id)
+       values ('${list}','direct-then-import','${userA}');`],
+  ]) {
+    const result = await twoSessions(first, batch(name))
+    assert.equal(result.status, 'conflict')
+    assert.equal(result.conflicts[0].name, name)
+    assert.equal(await sql(`select count(*) from public.items where list_id='${list}' and name='${name}';`), '1')
+  }
+  console.log('PASS: manual, direct and batch writes racing with import')
   const auto = await race('race-auto', 'auto', 'null')
   assert.equal(auto.item.section_id, 'milk')
   assert.equal(auto.source, 'remembered')

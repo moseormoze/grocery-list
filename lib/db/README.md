@@ -155,3 +155,23 @@ After migration and deployment, use two authenticated household members:
 5. Verify a failed save leaves the editor contents intact. Verify the cosmic feedback appears only for a successful automatic save and respects reduced motion.
 
 To roll back the app, deploy the previous application version and retain the new table and functions. Do not drop the table, which would erase remembered corrections. Older clients do not learn new preferences, so update both clients when enabling the feature.
+
+### Importing a reviewed supermarket list
+
+Migration 009 installs `import_grocery_items(list_id, operation_id, rows)`. The
+authenticated caller sends the selected rows in display order. Each row has a
+name, optional qty, sectionId and mode (auto or manual). Set duplicateFor to
+the whitespace-normalized name only when the user approved an extra copy.
+The result has status saved and the ordered item snapshots, or status conflict
+with the zero-based positions and names that require review.
+
+Keep the operation UUID and exact payload across transport retries. A
+successful retry returns the original receipt even if an item has since been
+edited or deleted. Use a new operation UUID for changed selections. Receipts
+are private to the function and cascade with their list. A conflict writes
+nothing. Explicit manual choices are recorded transactionally. Text imports
+have entry_source=text, visible to both partners through normal item reads.
+Existing items and ordinary inserts default to manual.
+
+Run `node scripts/test-categorization-db.mjs` with Docker running to test on a
+disposable PostgreSQL database, including two simultaneous sessions.

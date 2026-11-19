@@ -21,7 +21,7 @@ const QUEUE_KEY = 'grocery-list:offline-queue';
 /**
  * In-memory queue, persisted to localStorage.
  */
-class OfflineQueue {
+export class OfflineQueue {
   private queue: QueuedMutation[] = [];
   private listeners: Set<(queue: QueuedMutation[]) => void> = new Set();
 

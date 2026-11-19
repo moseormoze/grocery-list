@@ -9,7 +9,9 @@
     "lint": "next lint",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "evaluate:categorization": "node scripts/run-categorization-evaluation.ts",
+    "test:categorization:db": "node scripts/test-categorization-db.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -65,7 +65,12 @@
     "packingInProgress": "האריזה בעיצומה",
     "packingComplete": "הכול ארוז",
     "vacationNamePlaceholder": "למשל: מטרייה",
-    "vacationQtyPlaceholder": "למשל: 2"
+    "vacationQtyPlaceholder": "למשל: 2",
+    "editItem": "ערוך פריט",
+    "autoCategory": "סיווג אוטומטי",
+    "saving": "שומר…",
+    "saveError": "לא הצלחנו לשמור את הפריט. נסה שוב.",
+    "categorized": "{itemName} סווג לקטגוריה {categoryName}"
   },
   "copyList": {
     "label": "העתק רשימה",

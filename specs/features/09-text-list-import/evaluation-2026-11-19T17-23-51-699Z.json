@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-19T17:23:51.699Z",
+  "model": "claude-haiku-5-5",
+  "promptVersion": "he-shopping-v1",
+  "promptHash": "cb7083ed958848d22d8c84410bd220b89046fb19b0339f72f896b6c6f8baf51c",
+  "cases": 12,
+  "scored": 0,
+  "passed": 0,
+  "fieldMatches": {
+    "name": 0,
+    "qty": 0,
+    "negated": 0
+  },
+  "comparedSlots": 0,
+  "rows": [
+    {
+      "text": "מלפפונים, 6 יחידות, עגבניות, 4",
+      "error": "fetch failed",
+      "reason": "ENOTFOUND",
+      "ms": 22
+    }
+  ]
+}

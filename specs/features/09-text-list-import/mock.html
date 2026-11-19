@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>הוספה מטקסט · מוקאפ</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap');
+:root{--cream:#FAF6EE;--ink:#1C1B17;--muted:#716F68;--accent:#F4B5A0;--soft:#FBE5DC;--line:rgba(28,27,23,.1);--green:#4F6E32;--error:#B14A33}
+*{box-sizing:border-box}body{margin:0;background:#EDE9E1;color:var(--ink);font-family:Heebo,system-ui,-apple-system,'Noto Sans Hebrew',sans-serif;font-size:15px}button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer;border:0;background:none}button:disabled{cursor:default;opacity:.45}button,input,textarea,select{touch-action:manipulation}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #C77858;outline-offset:3px}svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}.sprite{display:none}h1,h2,h3,p{margin:0}a{color:inherit}.workbench{max-width:1080px;margin:auto;min-height:100vh;display:grid;grid-template-columns:1fr 404px;gap:72px;align-items:center;padding:32px 44px}.notes{padding:20px 0}.eyebrow{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:600;color:#68665F;letter-spacing:.02em}.eyebrow:before{content:'';height:7px;width:7px;border-radius:50%;background:#C77858}.notes h1{font-size:42px;font-weight:800;letter-spacing:-1.5px;line-height:1.25;margin:22px 0 16px}.intro{color:#66645E;line-height:1.9;max-width:370px;font-size:16px}.steps{margin:34px 0;display:flex;flex-direction:column;gap:8px}.step{display:flex;align-items:center;gap:14px;min-height:58px;padding:10px 14px;border-radius:16px;text-align:start;color:#716F68}.step:hover{background:#ffffff55}.step.active{background:#FAF6EE;color:var(--ink);box-shadow:0 1px 2px #1C1B1706}.step-num{height:30px;width:30px;border:1px solid #1C1B171a;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:600}.active .step-num{background:var(--accent);border-color:transparent}.step strong{font-size:15px;font-weight:600}.step small{display:block;font-size:12px;margin-top:2px;color:#77736C}.design-note{border-top:1px solid #1C1B1715;padding-top:21px;font-size:13px;line-height:1.9;color:#6E6B64}.design-note b{color:#45423D;font-weight:600}.scenarios{display:flex;gap:5px;flex-wrap:wrap;margin-top:16px}.scenarios button{font-size:12px;min-height:36px;border:1px solid #1C1B1719;padding:6px 11px;border-radius:20px}.scenarios button:hover{background:var(--cream)}.device{height:810px;max-height:calc(100vh - 64px);min-height:650px;width:404px;background:var(--cream);border:7px solid #FFFCF7;border-radius:42px;box-shadow:0 24px 65px #322C2620,0 2px 8px #322C2610;position:relative;overflow:hidden}.app{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--cream)}.status{height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:8px 22px 0;font-size:11px;font-weight:700;direction:ltr}.status-icons{display:flex;gap:6px;align-items:center}.status-icons svg{width:14px;height:14px;stroke-width:2}.app-header{padding:17px 13px 16px;display:flex;align-items:center;gap:0;border-bottom:1px solid var(--line);flex-shrink:0}.icon{min-width:44px;width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:#55534C;flex-shrink:0}.icon:hover{background:#1C1B1709}.title-wrap{flex:1;min-width:0;display:flex;align-items:center;gap:8px}.title-wrap h2{font-size:20px;line-height:1.2;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.title-wrap svg{width:23px;height:23px}.edit-top{padding:0 8px;min-height:44px;font-size:13px;font-weight:600}.list-content{padding:20px 19px 110px;overflow:auto;flex:1;scrollbar-width:thin}.list-summary{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-bottom:18px}.partner{display:flex;gap:5px;align-items:center}.dot{width:6px;height:6px;border-radius:50%;background:#718B57}.category{margin-bottom:22px}.category-head{height:66px;border-radius:18px;display:flex;align-items:center;justify-content:space-between;padding:16px 20px;margin-bottom:7px;font-size:16px;font-weight:700}.category-head svg{width:30px;height:30px;transform:rotate(-6deg)}.item{display:flex;align-items:center;min-height:64px;gap:6px;border-bottom:1px solid #1C1B170c;border-radius:9px;padding:5px 0}.item:last-child{border-bottom:0}.circle{width:24px;height:24px;border:1.6px solid #1C1B174d;border-radius:50%;display:grid;place-items:center}.item-check{width:44px;min-width:44px;height:44px;display:grid;place-items:center}.item-check svg{width:15px;height:15px}.item-info{min-width:0;flex:1}.item-info strong{display:block;font-size:16px;line-height:1.4;font-weight:600;overflow-wrap:anywhere}.item-info small{display:block;color:#77746D;font-size:13px;margin-top:2px}.item.done .circle{background:var(--accent);border-color:var(--accent)}.item.done .item-info{text-decoration:line-through;opacity:.5}.source{font-size:10px;background:#1C1B1709;color:#666158;padding:4px 7px;border-radius:20px;white-space:nowrap}.item.fresh{animation:highlight 900ms ease-out}.app-bottom{position:absolute;inset-inline:16px;bottom:18px}.primary{min-height:50px;border-radius:99px;padding:12px 20px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);width:100%;font-size:16px}.primary:hover:not(:disabled){filter:brightness(1.03)}.primary:active:not(:disabled){transform:scale(.985)}.primary:disabled{background:#E6E1D8;color:#777268;opacity:1}.veil{position:absolute;inset:0;background:#1C1B1761;z-index:3;animation:fade 180ms ease-out}.sheet{position:absolute;inset-inline:0;bottom:0;max-height:92%;display:flex;flex-direction:column;background:var(--cream);border-radius:28px 28px 0 0;box-shadow:0 -15px 40px #1C1B1719;animation:slide 180ms ease-out;overflow:hidden}.handle{width:34px;height:4px;min-height:4px;background:#D7D2C8;border-radius:4px;margin:11px auto 0}.sheet-head{padding:14px 21px 13px;position:relative;flex-shrink:0}.sheet-head h2{font-size:23px;font-weight:800;letter-spacing:-.5px;padding-inline-end:30px;line-height:1.4}.sheet-head p{color:var(--muted);font-size:13px;line-height:1.7;margin-top:7px;padding-inline-end:8px}.sheet-close{position:absolute;inset-inline-end:9px;top:5px}.sheet-body{overflow:auto;padding:8px 21px 18px;scrollbar-width:thin;flex:1;min-height:0}.sheet-footer{flex-shrink:0;padding:14px 21px 23px;border-top:1px solid var(--line);background:var(--cream)}.field-label{display:block;font-weight:600;font-size:13px;margin-bottom:10px}.text-input{resize:vertical;display:block;width:100%;min-height:200px;max-height:310px;line-height:1.9;font-size:17px;padding:16px;border:1.5px solid #1C1B171a;border-radius:16px;background:white;outline:none}.text-input:focus{border-color:#C77858;box-shadow:0 0 0 3px var(--soft)}.hint{display:flex;align-items:center;gap:7px;font-size:12px;color:#79746B;margin-top:13px}.hint svg{width:15px;height:15px}.review-sheet{height:92%}.review-body{padding:0 17px 18px}.review-item{border:1px solid var(--line);border-radius:16px;margin-bottom:9px;background:#FFFDF9;padding:8px 6px}.review-item.off{background:transparent}.review-row{display:flex;gap:1px;align-items:center}.review-info{flex:1;min-width:0;padding:4px 3px}.review-info strong{font-weight:600;font-size:16px;display:block;overflow-wrap:anywhere}.review-info .qty{font-size:13px;color:#6D685F;display:block;margin-top:1px}.review-info .metadata{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:7px}.category-tag{font-size:10px;font-weight:500;border-radius:20px;padding:3px 7px;white-space:nowrap}.why{font-size:11px;color:#7B6550;line-height:1.5}.choice{display:flex;width:44px;min-width:44px;height:48px;align-items:center;justify-content:center;cursor:pointer}.choice input{appearance:none;width:22px;height:22px;border:1.5px solid #B3AEA3;border-radius:7px;cursor:pointer;background:transparent;position:relative;flex-shrink:0}.choice input:checked{background:var(--accent);border-color:var(--accent)}.choice input:checked:after{content:'';position:absolute;width:8px;height:4px;border-bottom:1.8px solid var(--ink);border-left:1.8px solid var(--ink);transform:rotate(-45deg);top:6px;left:5px}.duplicate-note{color:#7C7466;font-size:11px;margin:0 50px 5px 5px}.row-edit{padding:10px 12px 8px;border-top:1px solid var(--line);margin-top:6px}.edit-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:8px}.row-edit label{display:block;font-size:11px;font-weight:600;margin:6px 0}.row-edit input,.row-edit select{height:44px;width:100%;background:white;border:1px solid #DAD4C8;border-radius:10px;padding:8px;font-size:16px;min-width:0}.row-edit .save-edit{display:block;background:var(--soft);min-height:44px;border-radius:12px;margin-top:12px;width:100%;font-size:13px;font-weight:600}.original{padding:4px 5px 0;font-size:12px;color:#716A60}.original summary{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:6px}.original summary:before{content:'⌄';font-size:18px}.original p{white-space:pre-line;background:#1C1B1705;border-radius:12px;padding:12px;line-height:1.8}.back-text{font-size:12px;min-height:44px;display:flex;gap:6px;align-items:center;justify-content:center;width:100%;margin-top:2px;color:#716A60}.back-text svg{width:14px;height:14px}.review-sheet .sheet-footer{padding-top:12px;padding-bottom:10px}.review-count{display:inline-flex;align-items:center;gap:5px;color:#716A60;font-size:12px;margin-top:6px}.review-count svg{width:14px;height:14px}.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:55px 25px 65px;text-align:center;min-height:290px}.loading h3{font-size:19px;margin-top:22px}.loading p{font-size:13px;color:#716A60;margin-top:9px}.spinner{width:38px;height:38px;border:3px solid var(--soft);border-top-color:#C77858;border-radius:50%;animation:spin 900ms linear infinite}.toast{position:absolute;top:112px;inset-inline:24px;background:var(--ink);color:var(--cream);padding:13px 16px;border-radius:14px;z-index:5;box-shadow:0 8px 24px #1C1B1720;font-size:13px;display:flex;align-items:center;gap:9px;animation:fade 150ms ease-out;pointer-events:none}.toast svg{width:18px;height:18px}.notice{padding:12px 14px;border-radius:12px;background:#F6E0DA;color:#8B3926;font-size:13px;line-height:1.7;margin:12px 0 0}.neutral-notice{background:#EDE8DC;color:#645C4C}.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);border:0}.mobile-nav{display:none}.confirm-box{position:absolute;z-index:8;inset:0;background:#1C1B1760;display:grid;place-items:center;padding:24px}.confirm-card{background:var(--cream);border-radius:22px;padding:24px;box-shadow:0 15px 40px #1C1B1733}.confirm-card h3{font-size:20px}.confirm-card p{font-size:14px;color:#716A60;margin:12px 0 22px;line-height:1.8}.confirm-actions{display:flex;gap:8px}.confirm-actions button{min-height:44px;flex:1;background:var(--soft);border-radius:99px;font-weight:600;font-size:13px}.confirm-actions button:last-child{background:#1C1B1708}.pending{color:#6B645B;font-size:12px;line-height:1.7;padding:10px 2px}.sheet-head.compact{padding-bottom:15px}.batch-label{color:#68645C;font-size:11px;margin:0 3px 12px}.reveal{animation:fade 180ms ease-out}@keyframes spin{to{transform:rotate(360deg)}}@keyframes fade{from{opacity:0}to{opacity:1}}@keyframes slide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes highlight{0%,30%{background:var(--soft)}100%{background:transparent}}
+@media(max-width:800px){.workbench{grid-template-columns:1fr;gap:24px;padding:22px;max-width:460px}.notes{padding:0}.notes h1{font-size:27px;margin:8px 0}.intro,.steps,.design-note{display:none}.device{width:100%;max-height:none;height:800px;min-height:0}.mobile-nav{display:flex;gap:4px;margin-top:15px}.mobile-nav button{background:#ffffff80;border-radius:30px;padding:8px 11px;min-height:40px;font-size:12px}.mobile-nav button.active{background:var(--accent)}}
+@media(max-width:480px){body{background:var(--cream)}.workbench{padding:0;gap:0;display:block}.notes{padding:10px 14px;background:#EDE9E1;border-bottom:1px solid var(--line)}.eyebrow{font-size:10px}.notes h1{display:none}.mobile-nav{margin-top:8px;justify-content:space-between}.mobile-nav button{font-size:11px;padding:6px 11px;min-height:36px}.device{border:0;border-radius:0;width:100%;height:calc(100dvh - 95px);min-height:530px;box-shadow:none}.status{display:none}.app-header{padding-top:12px}.sheet-footer{padding-bottom:max(18px,env(safe-area-inset-bottom))}.sheet-head h2{font-size:22px}.review-sheet{height:94%;max-height:94%}.toast{top:85px}.sheet-body{padding-inline:18px}.review-body{padding-inline:14px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-import" viewBox="0 0 24 24"><path d="M4 5h13M4 10h13M4 15h6M4 20h6M17 14v8M13 18h8"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M15 8V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h4"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="m15 5 4 4M4 20l5-1L20 8a2.8 2.8 0 0 0-4-4L5 15z"/></symbol>
+<symbol id="i-cart" viewBox="0 0 24 24"><path d="M2 3h3l3 13h11l3-10H6M8 10h12"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></symbol>
+<symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 3C9 2 3 6 4 13s13 8 16-10Z M4 20 15 9M8 16l-1-6M12 12l5 1"/></symbol>
+<symbol id="i-milk" viewBox="0 0 24 24"><path d="M8 3h8v4l3 5v9H5v-9l3-5zM8 7h8M5 12h14M8 3l5 4v5M13 12v9"/></symbol>
+<symbol id="i-wheat" viewBox="0 0 24 24"><path d="M12 22V7M12 17c-5 0-7-4-7-7 4 0 7 3 7 7ZM12 17c5 0 7-4 7-7-4 0-7 3-7 7ZM12 10c-3-3-3-6 0-9 3 3 3 6 0 9Z"/></symbol>
+<symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z"/></symbol>
+<symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 19v-4M9 19v-8M14 19V7M19 19V3"/></symbol>
+<symbol id="i-battery" viewBox="0 0 24 24"><rect x="2" y="6" width="17" height="12" rx="2"/><path d="M22 10v4M5 9h11v6H5z"/></symbol>
+</defs></svg>
+<main class="workbench">
+<aside class="notes">
+  <div class="eyebrow">רשימת הקניות שלנו · מוקאפ עם נתוני דוגמה</div>
+  <h1>מהטקסט שלכם.<br>לרשימה של שניכם.</h1>
+  <p class="intro">מדביקים, בודקים ומוסיפים.<br>כל מוצר עם השם, הכמות והמקום שלו ברשימה.</p>
+  <nav class="steps" aria-label="מסכי ההדגמה">
+    <button class="step" data-screen="list"><span class="step-num">01</span><span><strong>מתחילים ברשימה</strong><small>פעולה קטנה ליד כפתור ההעתקה</small></span></button>
+    <button class="step" data-screen="input"><span class="step-num">02</span><span><strong>מכניסים את הטקסט</strong><small>הדבקה, הקלדה או הכתבה מהמקלדת</small></span></button>
+    <button class="step" data-screen="review"><span class="step-num">03</span><span><strong>בודקים לפני שמוסיפים</strong><small>מתקנים כמויות ובוחרים מה ייכנס</small></span></button>
+    <button class="step" data-screen="success"><span class="step-num">04</span><span><strong>הכול במקום</strong><small>מסווג, משותף ועם חיווי מקור עדין</small></span></button>
+  </nav>
+  <div class="design-note"><b>מוקאפ אינטראקטיבי, עם נתוני דוגמה.</b><br>אפשר לבחור פריטים, לערוך ולסמן כנקנה. הפענוח מדומה ופועל על הדוגמה המוכנה בלבד. דבר לא נשלח או נשמר ברשימה האמיתית.
+    <div class="scenarios"><button data-scenario="error">שגיאת פענוח</button><button data-scenario="empty">לא נמצאו פריטים</button><button data-scenario="reset">איפוס ההדגמה</button></div>
+  </div>
+  <nav class="mobile-nav" aria-label="מסכי המוקאפ"><button data-screen="list">רשימה</button><button data-screen="input">הזנה</button><button data-screen="review">בדיקה</button><button data-screen="success">אחרי הוספה</button></nav>
+</aside>
+<section class="device" aria-label="תצוגת האפליקציה"><div id="app" class="app"></div><div id="overlay"></div><div id="feedback" aria-live="polite"></div></section>
+</main>
+<script>
+const icon = name => `<svg aria-hidden="true"><use href="#i-${name}"></use></svg>`
+const $ = s => document.querySelector(s)
+const esc = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
+const cats = {
+  produce:{name:'ירקות ופירות',tint:'#E8F1DD',ink:'#4F6E32',icon:'leaf'},
+  milk:{name:'מוצרי חלב',tint:'#E7F1F7',ink:'#3B6C8C',icon:'milk'},
+  meat:{name:'בשר ודגים',tint:'#F6E0DA',ink:'#A0432F',icon:'cart'},
+  dry:{name:'מזווה',tint:'#F2E9D5',ink:'#8A6A2B',icon:'wheat'},
+  sauces:{name:'רטבים וממרחים',tint:'#F5E6CC',ink:'#8B5E20',icon:'cart'},
+  baking:{name:'אפייה ומאפייה',tint:'#F7E2E8',ink:'#A24566',icon:'wheat'},
+  snacks:{name:'חטיפים',tint:'#FAE7CB',ink:'#A86220',icon:'cart'},
+  drinks:{name:'משקאות',tint:'#E6E2F0',ink:'#564B86',icon:'milk'},
+  frozen:{name:'קפואים',tint:'#E0EBF2',ink:'#3D6580',icon:'cart'},
+  cleaning:{name:'ניקיון',tint:'#DEEFEC',ink:'#3E7C76',icon:'cart'},
+  other:{name:'אחר',tint:'#ECEAE5',ink:'#5A554B',icon:'cart'}
+}
+const sample = 'מלפפונים 6 יחידות\nעגבניות 4\nגבינה לבנה 5% חבילה אחת\nפסטה 2 חבילות\nביצים תבנית אחת\nחלב לא צריך'
+const initialItems = () => [
+  {id:'a',name:'אבוקדו',qty:'3 יחידות',cat:'produce'},
+  {id:'b',name:'ביצים',qty:'תבנית אחת',cat:'milk'},
+  {id:'c',name:'יוגורט יווני',qty:'2 גביעים',cat:'milk'},
+  {id:'d',name:'אורז בסמטי',qty:'1 ק״ג',cat:'dry'}
+]
+const initialDraft = () => [
+  {id:1,name:'מלפפונים',qty:'6 יחידות',cat:'produce',selected:true},
+  {id:2,name:'עגבניות',qty:'4',cat:'produce',selected:true},
+  {id:3,name:'גבינה לבנה 5%',qty:'חבילה אחת',cat:'milk',selected:true},
+  {id:4,name:'פסטה',qty:'2 חבילות',cat:'dry',selected:true},
+  {id:5,name:'ביצים',qty:'תבנית אחת',cat:'milk',selected:false,duplicate:true},
+  {id:6,name:'חלב',qty:'',cat:'milk',selected:false,negated:true}
+]
+let items = initialItems()
+let draft = initialDraft()
+let text = sample
+let screen = 'list'
+let editing = null
+let pendingTimer = null
+let toastTimer = null
+let opener = null
+let draftChanged = false
+let sourceOpen = false
+let batch = 0
+function norm(s){return s.trim().replace(/\s+/g,' ')}
+function duplicateFor(row){return items.find(i=>!i.done&&norm(i.name)===norm(row.name))}
+function syncDuplicate(row){row.duplicate=!!duplicateFor(row)}
+function selectedCount(){return draft.filter(i=>i.selected).length}
+function activateNav(){document.querySelectorAll('[data-screen]').forEach(b=>b.classList.toggle('active',b.dataset.screen===screen))}
+function announce(message){$('#feedback').innerHTML=`<span class="sr-only">${esc(message)}</span>`}
+function toast(message){clearTimeout(toastTimer);$('#feedback').innerHTML=`<div class="toast">${icon('check')}<span>${esc(message)}</span></div>`;toastTimer=setTimeout(()=>{$('#feedback').innerHTML=''},3000)}
+function renderList(fresh=false){
+  const done=items.filter(i=>i.done).length
+  $('#app').innerHTML=`<div class="status" aria-hidden="true"><span>9:41</span><span class="status-icons">${icon('signal')}${icon('battery')}</span></div>
+    <header class="app-header"><button class="icon" data-demo="זהו מסך הרשימה במוקאפ" aria-label="חזרה לרשימות">${icon('arrow')}</button><div class="title-wrap">${icon('cart')}<h2>קניות לבית</h2></div><button id="import-button" class="icon" title="הוסף מטקסט" aria-label="הוסף מטקסט">${icon('import')}</button><button class="icon" id="copy-button" title="העתק רשימה" aria-label="העתק רשימה">${icon('copy')}</button><button class="edit-top" data-demo="עריכת הפריטים החדשים זמינה במסך הבדיקה">ערוך</button></header>
+    <div class="list-content"><div class="list-summary"><span>${done} מתוך ${items.length} נקנו</span><span class="partner"><span class="dot"></span>משותפת לשניכם</span></div>
+    ${Object.entries(cats).map(([id,cat])=>{
+      const group=items.filter(i=>i.cat===id)
+      if(!group.length)return ''
+      return `<section class="category"><h3 class="category-head" style="background:${cat.tint};color:${cat.ink}"><span>${cat.name}</span>${icon(cat.icon)}</h3>${group.map(i=>`<div class="item ${i.done?'done':''} ${fresh&&i.source?'fresh':''}"><button class="item-check" data-toggle="${i.id}" aria-label="${i.done?'בטל סימון':'סמן כנקנה'}: ${esc(i.name)}" aria-pressed="${!!i.done}"><span class="circle">${i.done?icon('check'):''}</span></button><div class="item-info"><strong dir="auto">${esc(i.name)}</strong>${i.qty?`<small dir="auto">${esc(i.qty)}</small>`:''}</div>${i.source&&!i.done?'<span class="source">נוסף מטקסט</span>':''}</div>`).join('')}</section>`
+    }).join('')}</div><div class="app-bottom"><button class="primary" data-demo="זהו כפתור ההוספה הבודדת הקיים. נסו את כפתור הרשימה עם הפלוס בכותרת">${icon('plus')}הוסף פריט</button></div>`
+  $('#import-button').onclick=()=>{opener=$('#import-button');text=sample;draft=initialDraft();draftChanged=false;showInput()}
+  $('#copy-button').onclick=()=>toast('הדגמה: הרשימה הועתקה')
+  document.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>{const item=items.find(i=>i.id===b.dataset.toggle);item.done=!item.done;renderList();document.querySelector(`[data-toggle="${item.id}"]`).focus()})
+  document.querySelectorAll('[data-demo]').forEach(b=>b.onclick=()=>toast(b.dataset.demo))
+}
+function baseSheet(content,kind=''){
+  $('#app').inert=true
+  $('#overlay').innerHTML=`<div class="veil"><section class="sheet ${kind}" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div class="handle" aria-hidden="true"></div>${content}</section></div>`
+  const close=$('#close-sheet')
+  if(close)close.onclick=requestClose
+}
+function heading(title,subtitle=''){return `<header class="sheet-head"><button class="icon sheet-close" id="close-sheet" aria-label="סגור">${icon('x')}</button><h2 id="sheet-title" tabindex="-1">${title}</h2>${subtitle?`<p>${subtitle}</p>`:''}</header>`}
+function showInput(message='',neutral=false){
+  clearTimeout(pendingTimer);screen='input';activateNav()
+  baseSheet(`${heading('הוספה מטקסט','הדביקו רשימה, כתבו או הכתיבו דרך המקלדת')}<div class="sheet-body"><label for="shopping-text" class="field-label">רשימת הקניות שלכם</label><textarea id="shopping-text" class="text-input" dir="auto" placeholder="מלפפונים 6 יחידות&#10;עגבניות 4&#10;גבינה חבילה אחת">${esc(text)}</textarea><div class="hint">${icon('check')}קודם בודקים, אחר כך מוסיפים</div>${message?`<div class="notice ${neutral?'neutral-notice':''}" role="${neutral?'status':'alert'}">${esc(message)}</div>`:''}</div><footer class="sheet-footer"><button class="primary" id="parse" ${text.trim()?'':'disabled'}>${icon('import')}פענח רשימה</button></footer>`)
+  $('#shopping-text').oninput=e=>{text=e.target.value;$('#parse').disabled=!text.trim()}
+  $('#parse').onclick=()=>{
+    if(norm(text)!==norm(sample)){
+      showInput('זהו מוקאפ עם פענוח מדומה. כדי לנסות את הזרימה, חזרו לדוגמה המוכנה באמצעות ״הזנה״ בתפריט ההדגמה.',true)
+      return
+    }
+    showLoading()
+  }
+  $('#shopping-text').focus({preventScroll:true})
+}
+function showLoading(){
+  baseSheet(`${heading('הוספה מטקסט')}<div class="loading" role="status"><div class="spinner" aria-hidden="true"></div><h3>מפענח את הרשימה…</h3><p>מסדרים את השמות, הכמויות והקטגוריות</p></div>`)
+  $('#close-sheet').focus()
+  pendingTimer=setTimeout(()=>{draft=initialDraft();draft.forEach(syncDuplicate);draft.forEach(r=>{if(r.duplicate)r.selected=false});showReview()},850)
+}
+function renderRow(row){
+  const cat=cats[row.cat]
+  const existing=duplicateFor(row)
+  let why=''
+  if(row.duplicate)why=row.selected?'יתווסף כפריט נוסף':'כבר ברשימה'
+  if(row.negated)why=row.selected?'יתווסף לפי הבחירה שלכם':'לא נבחר · נכתב שלא צריך'
+  return `<article class="review-item ${row.selected?'':'off'}" data-row="${row.id}"><div class="review-row"><label class="choice"><input type="checkbox" data-choice="${row.id}" aria-label="הוסף ${esc(row.name)}" ${row.selected?'checked':''}></label><div class="review-info"><strong dir="auto">${esc(row.name)}</strong>${row.qty?`<span class="qty" dir="auto">${esc(row.qty)}</span>`:''}<div class="metadata"><span class="category-tag" style="background:${cat.tint};color:${cat.ink}">${cat.name}</span>${why?`<span class="why">${why}</span>`:''}</div></div><button class="icon" data-edit="${row.id}" aria-label="ערוך ${esc(row.name)}">${icon('edit')}</button></div>${existing?`<div class="duplicate-note">ברשימה: ${esc(existing.qty||'ללא כמות')}</div>`:''}
+  ${editing===row.id?`<div class="row-edit"><div class="edit-grid"><div><label for="name-${row.id}">שם הפריט</label><input id="name-${row.id}" data-name="${row.id}" dir="auto" value="${esc(row.name)}" maxlength="500" required></div><div><label for="qty-${row.id}">כמות</label><input id="qty-${row.id}" data-qty="${row.id}" dir="auto" value="${esc(row.qty)}" maxlength="200"></div></div><label for="cat-${row.id}">קטגוריה</label><select id="cat-${row.id}" data-cat="${row.id}">${Object.entries(cats).map(([id,c])=>`<option value="${id}" ${id===row.cat?'selected':''}>${c.name}</option>`).join('')}</select><button class="save-edit" data-save="${row.id}">סיום עריכה</button></div>`:''}</article>`
+}
+function showReview(focus=true){
+  screen='review';activateNav()
+  const count=selectedCount()
+  baseSheet(`${heading('בדיקה לפני הוספה',`${count} פריטים נבחרו להוספה`)}<div class="sheet-body review-body"><div class="batch-label">אפשר לתקן כל פריט או לבטל את הבחירה בו</div>${draft.map(renderRow).join('')}<details class="original" ${sourceOpen?'open':''}><summary>הטקסט המקורי</summary><p dir="auto">${esc(text)}</p></details></div><footer class="sheet-footer"><button class="primary" id="add-all" ${!count||draft.some(r=>r.selected&&!r.name.trim())?'disabled':''}>הוסף ${count} פריטים</button><button class="back-text" id="back-text">${icon('arrow')}חזרה לטקסט</button></footer>`,'review-sheet')
+  document.querySelectorAll('[data-choice]').forEach(el=>el.onchange=()=>{
+    const scroll=$('.review-body').scrollTop
+    const r=draft.find(i=>i.id===Number(el.dataset.choice))
+    r.selected=el.checked;draftChanged=true;showReview(false)
+    $('.review-body').scrollTop=scroll
+    document.querySelector(`[data-choice="${r.id}"]`).focus({preventScroll:true})
+  })
+  document.querySelectorAll('[data-edit]').forEach(el=>el.onclick=()=>{editing=Number(el.dataset.edit);showReview(false);document.querySelector(`[data-name="${editing}"]`).focus()})
+  document.querySelectorAll('[data-name]').forEach(el=>el.oninput=()=>{
+    const r=draft.find(i=>i.id===Number(el.dataset.name))
+    el.setCustomValidity('')
+    r.name=el.value;draftChanged=true
+    $('#add-all').disabled=!selectedCount()||draft.some(i=>i.selected&&!i.name.trim())
+  })
+  document.querySelectorAll('[data-qty]').forEach(el=>el.oninput=()=>{draft.find(i=>i.id===Number(el.dataset.qty)).qty=el.value;draftChanged=true})
+  document.querySelectorAll('[data-cat]').forEach(el=>el.onchange=()=>{draft.find(i=>i.id===Number(el.dataset.cat)).cat=el.value;draftChanged=true})
+  document.querySelectorAll('[data-save]').forEach(el=>el.onclick=()=>{
+    const id=Number(el.dataset.save),r=draft.find(i=>i.id===id)
+    if(!r.name.trim()){const input=document.querySelector(`[data-name="${id}"]`);input.setCustomValidity('צריך שם לפריט');input.reportValidity();return}
+    const before=r.duplicate;syncDuplicate(r);if(r.duplicate&&!before)r.selected=false
+    editing=null;showReview(false);document.querySelector(`[data-edit="${id}"]`).focus()
+  })
+  $('.original').ontoggle=e=>{sourceOpen=e.target.open}
+  $('#back-text').onclick=()=>{
+    if(draftChanged)confirmAction('לחזור לטקסט?','פענוח חדש יחליף את התיקונים שעשיתם כאן.','חזרה לטקסט',()=>showInput())
+    else showInput()
+  }
+  $('#add-all').onclick=saveBatch
+  if(focus)$('#sheet-title').focus({preventScroll:true})
+}
+function saveBatch(){
+  const selected=draft.filter(i=>i.selected&&i.name.trim())
+  if(!selected.length)return
+  $('#add-all').disabled=true;$('#add-all').textContent='מוסיף לרשימה…'
+  $('.sheet').querySelectorAll('button,input,select').forEach(b=>b.disabled=true)
+  screen='saving'
+  pendingTimer=setTimeout(()=>{
+    batch++
+    items.push(...selected.map(r=>({id:`new-${batch}-${r.id}`,name:r.name.trim(),qty:r.qty,cat:r.cat,source:true})))
+    closeSheet();screen='success';activateNav();renderList(true);$('#import-button').focus()
+    toast(`נוספו ${selected.length} פריטים לרשימה`)
+  },550)
+}
+function closeSheet(){clearTimeout(pendingTimer);$('#overlay').innerHTML='';$('#app').inert=false;screen=items.some(i=>i.source)?'success':'list';activateNav();$('#import-button')?.focus({preventScroll:true})}
+function requestClose(){if(screen==='saving')return;clearTimeout(pendingTimer);if(text.trim())confirmAction('לסגור בלי להוסיף?','הטקסט והבחירות יימחקו. הרשימה שלכם לא תשתנה.','סגור',closeSheet);else closeSheet()}
+function confirmAction(title,message,action,callback){
+  const sheet=$('.sheet');sheet.inert=true
+  const wrapper=document.createElement('div');wrapper.className='confirm-box'
+  wrapper.innerHTML=`<div class="confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title"><h3 id="confirm-title">${esc(title)}</h3><p>${esc(message)}</p><div class="confirm-actions"><button id="confirm-yes">${esc(action)}</button><button id="confirm-no">להמשיך לערוך</button></div></div>`
+  $('#overlay').append(wrapper)
+  $('#confirm-no').onclick=()=>{wrapper.remove();sheet.inert=false;$('#close-sheet').focus()}
+  $('#confirm-yes').onclick=()=>{wrapper.remove();callback()}
+  $('#confirm-no').focus()
+}
+function navigate(next){
+  clearTimeout(pendingTimer);clearTimeout(toastTimer);$('#feedback').innerHTML='';$('#overlay').innerHTML='';$('#app').inert=false
+  editing=null;sourceOpen=false;draftChanged=false;text=sample;draft=initialDraft();items=initialItems();screen=next
+  if(next==='success'){items.push(...draft.filter(i=>i.selected).map(i=>({...i,id:`demo-${i.id}`,source:true})));renderList(true);activateNav();toast('נוספו 4 פריטים לרשימה')}
+  else{renderList();if(next==='input')showInput();else if(next==='review')showReview();else activateNav()}
+}
+document.querySelectorAll('[data-screen]').forEach(b=>b.onclick=()=>navigate(b.dataset.screen))
+document.querySelectorAll('[data-scenario]').forEach(b=>b.onclick=()=>{
+  const type=b.dataset.scenario
+  if(type==='reset')navigate('list')
+  if(type==='error'){navigate('input');showInput('לא הצלחנו לפענח כרגע. הטקסט נשמר, אפשר לנסות שוב')}
+  if(type==='empty'){navigate('input');text='תודה רבה';showInput('לא מצאנו פריטים להוספה. נסו לכתוב שמות מוצרים וכמויות',true)}
+})
+document.addEventListener('keydown',e=>{
+  const panel=$('.confirm-card')||$('.sheet')
+  if(!panel)return
+  if(e.key==='Escape'){
+    e.preventDefault()
+    if($('.confirm-card'))$('#confirm-no').click()
+    else requestClose()
+  }
+  if(e.key==='Tab'){
+    const controls=[...panel.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea,select:not(:disabled),summary')].filter(el=>!el.closest('[inert]'))
+    if(!controls.length){e.preventDefault();return}
+    const first=controls[0],last=controls.at(-1)
+    if(e.shiftKey&&(document.activeElement===first||!controls.includes(document.activeElement))){e.preventDefault();last.focus()}
+    else if(!e.shiftKey&&(document.activeElement===last||!controls.includes(document.activeElement))){e.preventDefault();first.focus()}
+  }
+})
+const requested=new URLSearchParams(location.search).get('screen')
+navigate(['list','input','review','success'].includes(requested)?requested:'input')
+</script>
+</body>
+</html>

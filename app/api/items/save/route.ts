@@ -1,3 +1,4 @@
+import { readPayload } from '@/lib/http/read-payload'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { classifyWithClaude } from '@/lib/categorization/claude'
 import { parseSaveInput, SaveError, saveCategorizedItem } from '@/lib/categorization/service'
@@ -5,29 +6,6 @@ import { parseMemory, parseSaveResult } from '@/lib/categorization/types'
 
 export const runtime = 'nodejs'
 
-async function readPayload(request: Request): Promise<unknown> {
-  const reader = request.body?.getReader()
-  if (!reader) throw new SaveError(400)
-  const decoder = new TextDecoder()
-  let size = 0
-  let text = ''
-  try {
-    for (;;) {
-      const { done, value } = await reader.read()
-      if (done) break
-      size += value.byteLength
-      if (size > 8192) {
-        await reader.cancel()
-        throw new SaveError(413)
-      }
-      text += decoder.decode(value, { stream: true })
-    }
-    return JSON.parse(text + decoder.decode()) as unknown
-  } catch (error) {
-    if (error instanceof SaveError) throw error
-    throw new SaveError(400)
-  } finally { reader.releaseLock() }
-}
 function databaseFailure(code: string): SaveError {
   return new SaveError(code === '42501' ? 403 : code === '22023' ? 400 : 500)
 }
@@ -36,7 +14,7 @@ export async function POST(request: Request): Promise<Response> {
     const origin = request.headers.get('origin')
     if (origin && origin !== new URL(request.url).origin) throw new SaveError(403)
     if (request.headers.get('content-type')?.split(';')[0].trim() !== 'application/json') throw new SaveError(415)
-    const input = parseSaveInput(await readPayload(request))
+    const input = parseSaveInput(await readPayload(request, 8192))
     const supabase = await createServerSupabase()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) throw new SaveError(401)

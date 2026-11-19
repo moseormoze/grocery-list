@@ -188,3 +188,32 @@ describe('copy list integration', () => {
     expect(mock.writeText).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('shopping text import', () => {
+  it('opens from the supermarket header and returns focus to the opener', () => {
+    render(<ListDetailPage />)
+    const opener = screen.getByRole('button',{name:'הוסף מטקסט'})
+    opener.focus()
+    fireEvent.click(opener)
+    expect(screen.getByRole('dialog')).toBeVisible()
+    expect(screen.getByRole('textbox')).toHaveFocus()
+    fireEvent.click(screen.getByRole('button',{name:'סגור'}))
+    expect(opener).toHaveFocus()
+  })
+  it('hides the import action on other list types', () => {
+    mock.list = {...mock.list!, type:'pharmacy'}
+    render(<ListDetailPage />)
+    expect(screen.queryByRole('button',{name:'הוסף מטקסט'})).toBeNull()
+  })
+  it('updates provenance when the partner ticks an imported item and when they undo', () => {
+    mock.items.push({...item('cucumber','מלפפונים','produce'),entry_source:'text'})
+    const view = render(<ListDetailPage />)
+    expect(screen.getAllByText('נוסף מטקסט')).toHaveLength(1)
+    mock.items = mock.items.map(i=>({...i,ticked:true}))
+    view.rerender(<ListDetailPage />)
+    expect(screen.queryByText('נוסף מטקסט')).toBeNull()
+    mock.items = mock.items.map(i=>({...i,ticked:false}))
+    view.rerender(<ListDetailPage />)
+    expect(screen.getAllByText('נוסף מטקסט')).toHaveLength(1)
+  })
+})

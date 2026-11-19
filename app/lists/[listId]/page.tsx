@@ -21,13 +21,14 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ListPlus } from 'lucide-react';
 import { EmojiIcon } from '@/lib/icon-map';
 import { SECTIONS_BY_TYPE } from '@/lib/categories';
 import { LIST_TYPE_META } from '@/lib/list-types';
 import { getProgressLabel, shouldShowCompleteTrip } from '@/lib/list-progress';
 import { formatCopyList } from '@/lib/copy-list';
 import { CopyListButton } from './CopyListButton';
+import { TextImportSheet } from '@/components/TextImportSheet';
 import { ItemEditor } from '@/components/ItemEditor';
 import { SortableGroceryItem } from '@/components/SortableGroceryItem';
 import { isAutoSuccess, type SaveResult } from '@/lib/categorization/types';
@@ -38,9 +39,18 @@ export default function ListDetailPage() {
   const params = useParams();
   const listId = params?.listId as string;
 
-  const { list, items, loading, error, updateOptimistically, deleteOptimistically, reorderOptimistically } = useList(listId);
+  const { list, items, loading, error, appendImported, refetch, updateOptimistically, deleteOptimistically, reorderOptimistically } = useList(listId);
   const [mode, setMode] = useState<'browse' | 'edit'>('browse');
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const [importListId, setImportListId] = useState<string | null>(null);
+  const [importNotice, setImportNotice] = useState<{listId: string, text: string} | null>(null);
+  const [freshItems, setFreshItems] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (!importNotice) return;
+    const highlight = setTimeout(() => setFreshItems(new Set()), 700);
+    const toast = setTimeout(() => setImportNotice(null), 3000);
+    return () => { clearTimeout(highlight); clearTimeout(toast); };
+  }, [importNotice]);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [effects, setEffects] = useState<Record<string, number>>({});
   const [announcement, setAnnouncement] = useState({ text: '', sequence: 0 });
@@ -160,7 +170,13 @@ export default function ListDetailPage() {
             <div className="text-xs text-ink-50">{typeInfo.label} · משותפת</div>
           </div>
           {list.type === 'supermarket' && (
-            <CopyListButton key={listId} text={formatCopyList(Object.values(groupedItems).flat())} />
+            <>
+              <button type="button" className="icon-btn import-open" aria-label={messages.textImport.open}
+                aria-haspopup="dialog" onClick={() => setImportListId(listId)}>
+                <ListPlus size={20} aria-hidden="true" />
+              </button>
+              <CopyListButton key={listId} text={formatCopyList(Object.values(groupedItems).flat())} />
+            </>
           )}
           <button
             onClick={() => setMode(mode === 'browse' ? 'edit' : 'browse')}
@@ -297,6 +313,7 @@ export default function ListDetailPage() {
                               key={item.id}
                               item={item}
                               mode={mode}
+                              importedNow={freshItems.has(item.id)}
                               effectUntil={effects[item.id]}
                               onEdit={value => { setEditingItem(value); setShowAddSheet(true); }}
                               onDelete={handleDeleteItem}
@@ -342,6 +359,20 @@ export default function ListDetailPage() {
       <div role="status" aria-live="polite" className="sr-only">
         <span key={announcement.sequence}>{announcement.text}</span>
       </div>
+      {importNotice && importNotice.listId === listId && (
+        <div className="import-toast" role="status">{importNotice.text}</div>
+      )}
+      {list.type === 'supermarket' && importListId === listId && (
+        <TextImportSheet key={listId} listId={listId} onClose={() => setImportListId(null)}
+          onImported={(saved, retried) => {
+            setImportListId(null);
+            if (retried) void refetch();
+            else appendImported(saved);
+            setFreshItems(new Set(saved.map(item => item.id)));
+            setImportNotice({listId, text: saved.length === 1 ? messages.textImport.successOne :
+              messages.textImport.success.replace('{count}', String(saved.length))});
+          }}/>
+      )}
       {showAddSheet && (
         <ItemEditor key={editingItem?.id ?? 'new'} listId={listId} listType={list.type}
           item={editingItem} orderIndex={items.length} onSaved={onItemSaved}

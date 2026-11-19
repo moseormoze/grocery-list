@@ -76,3 +76,14 @@ it('previews source order, saved choices, current cache, fallback, exclusions an
   expect(m.rpc).toHaveBeenCalledTimes(4)
   expect(m.classify).toHaveBeenCalledTimes(2)
 })
+
+it('looks up an edited name directly and checks the current pending list', async () => {
+  m.rpc.mockResolvedValue({data:{normalized_name:'חלב',manual_section_id:'milk',ai_section_id:null,ai_version:null}})
+  const request = new Request('https://example.test/api/items/preview', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({listId,name:'חלב'}),
+  })
+  const response = await POST(request)
+  expect(await response.json()).toMatchObject({items:[{name:'חלב',sectionId:'milk',selected:false,existing:{qty:'קרטון'}}]})
+  expect(m.parse).not.toHaveBeenCalled()
+  expect(m.classify).not.toHaveBeenCalled()
+})

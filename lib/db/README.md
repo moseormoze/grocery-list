@@ -124,3 +124,34 @@ Indexes are created on common query patterns:
 - UUIDs are generated server-side by Postgres (`gen_random_uuid()`)
 - Soft deletes are not used; deletions are cascading or explicit
 - Last-write-wins conflict resolution: server timestamp determines winner on concurrent edits
+
+## Automatic supermarket categorization (007)
+
+For an existing database, run **only** `migrations/007_auto_categorization.sql` in the Supabase SQL Editor before deploying the updated app. Do not rerun the full schema against an existing database. The migration is additive and can be reapplied. It does not change existing items or copy the old public cache.
+
+`household_item_categorizations` keeps separate manual and AI categories per household and whitespace-normalized name. Authenticated users may read their own household's rows. Only the checked save RPC writes them. Manual preferences survive item/list deletion and completed trips. The last committed manual save wins for future automatic additions.
+
+- `get_supermarket_categorization` authorizes the list/item and returns memory using the database's canonical normalization.
+- `save_supermarket_item` saves the item and a manual preference in one transaction. A per-household/name transaction lock and a final preference lookup protect against late AI replies. No transaction stays open during an AI call.
+- `preserve` edits retain the stored category without learning a preference. Explicit manual `other` is remembered. AI fallback is never learned.
+- AI cache version: `claude-haiku-5-5:groceries-v1`. No global cache is used by the feature.
+
+The Next.js server needs `ANTHROPIC_API_KEY`. `.env.local` is sufficient for local development. Configure the same variable in the hosting environment for a deployed app, without a `NEXT_PUBLIC_` prefix. Never commit the key. The API uses the caller's Supabase cookie session, not a service-role key. Missing/unavailable Claude falls back to `other`, while unavailable memory/storage is a save error.
+
+### Isolated database checks
+
+With Docker running, execute `npm run test:categorization:db`. This creates a temporary PostgreSQL 16 container with Supabase-compatible auth roles, loads the schema, reapplies migration 007, runs rollback/RLS/memory scenarios, and runs two concurrent sessions with observed lock contention. The container is removed afterward. It never reads `.env.local` or connects to the real database. The first run may download the standard `postgres:16-alpine` image.
+
+This is a database integration test, not a substitute for a two-user check against the actual Supabase deployment. Regular Vitest schema checks only verify migration packaging.
+
+### Release check
+
+After migration and deployment, use two authenticated household members:
+
+1. Add a new supermarket item in automatic mode.
+2. Manually change its category, save, then delete the item.
+3. From the partner's account, add the same name with surrounding spaces. Confirm it uses the correction, including an explicit choice of `other`.
+4. Refresh both clients and verify the saved category remains. Try a different item name to confirm no partial matching.
+5. Verify a failed save leaves the editor contents intact. Verify the cosmic feedback appears only for a successful automatic save and respects reduced motion.
+
+To roll back the app, deploy the previous application version and retain the new table and functions. Do not drop the table, which would erase remembered corrections. Older clients do not learn new preferences, so update both clients when enabling the feature.

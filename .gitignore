@@ -10,3 +10,7 @@ build/
 *.log
 .vercel
 coverage/
+.env*
+
+/node_modules
+tsconfig.tsbuildinfo

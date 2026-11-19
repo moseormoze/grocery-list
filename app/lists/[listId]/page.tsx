@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { useList } from '@/hooks/useList';
@@ -19,23 +19,18 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import {
-  ArrowRight,
-  GripVertical,
-  Pencil,
-  Trash2,
-  Check,
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { EmojiIcon } from '@/lib/icon-map';
 import { SECTIONS_BY_TYPE } from '@/lib/categories';
 import { LIST_TYPE_META } from '@/lib/list-types';
 import { getProgressLabel, shouldShowCompleteTrip } from '@/lib/list-progress';
 import { formatCopyList } from '@/lib/copy-list';
 import { CopyListButton } from './CopyListButton';
+import { ItemEditor } from '@/components/ItemEditor';
+import { SortableGroceryItem } from '@/components/SortableGroceryItem';
+import { isAutoSuccess, type SaveResult } from '@/lib/categorization/types';
 import messages from '@/messages/he.json';
 
 export default function ListDetailPage() {
@@ -47,9 +42,8 @@ export default function ListDetailPage() {
   const [mode, setMode] = useState<'browse' | 'edit'>('browse');
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
-  const [itemName, setItemName] = useState('');
-  const [itemQty, setItemQty] = useState('');
-  const [itemSection, setItemSection] = useState('other');
+  const [effects, setEffects] = useState<Record<string, number>>({});
+  const [announcement, setAnnouncement] = useState({ text: '', sequence: 0 });
   const [showConfirmTrip, setShowConfirmTrip] = useState(false);
   const [swipedItemId, setSwipedItemId] = useState<string | null>(null);
   const touchStartRef = useRef(0);
@@ -60,6 +54,15 @@ export default function ListDetailPage() {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
+
+  useEffect(() => {
+    const deadlines = Object.values(effects);
+    if (!deadlines.length) return;
+    const timer = setTimeout(() => {
+      setEffects(current => Object.fromEntries(Object.entries(current).filter(([, deadline]) => deadline > Date.now())));
+    }, Math.max(0, Math.min(...deadlines) - Date.now()));
+    return () => clearTimeout(timer);
+  }, [effects]);
 
   if (loading) {
     return (
@@ -82,61 +85,15 @@ export default function ListDetailPage() {
   const totalCount = items.length;
   const showCompleteTrip = shouldShowCompleteTrip(list.type, tickedCount);
 
-  const handleAddItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!itemName.trim()) return;
-
-    if (editingItem) {
-      const { error: updateError } = await supabase
-        .from('items')
-        .update({
-          name: itemName,
-          qty: itemQty || null,
-          section_id: itemSection,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', editingItem.id);
-
-      if (!updateError) {
-        const updated = {
-          ...editingItem,
-          name: itemName,
-          qty: itemQty || undefined,
-          section_id: itemSection,
-          updated_at: new Date().toISOString(),
-        };
-        updateOptimistically(updated);
-        setEditingItem(null);
-        setItemName('');
-        setItemQty('');
-        setItemSection('other');
-        setShowAddSheet(false);
-      }
-    } else {
-      const newItem: Omit<Item, 'id' | 'created_at' | 'updated_at'> = {
-        list_id: listId,
-        name: itemName,
-        qty: itemQty || undefined,
-        section_id: itemSection,
-        ticked: false,
-        order_index: items.length,
-        created_by_user_id: (await supabase.auth.getUser()).data.user?.id || '',
-      };
-
-      const { data: createdItem, error: insertError } = await supabase
-        .from('items')
-        .insert(newItem as any)
-        .select()
-        .single();
-
-      if (!insertError && createdItem) {
-        updateOptimistically(createdItem);
-        setItemName('');
-        setItemQty('');
-        setItemSection('other');
-        setShowAddSheet(false);
-      }
+  const onItemSaved = (result: SaveResult) => {
+    updateOptimistically(result.item);
+    if (isAutoSuccess(result.source)) {
+      setEffects(current => ({ ...current, [result.item.id]: Date.now() + 500 }));
+      const category = SECTIONS_BY_TYPE.supermarket[result.item.section_id || 'other'];
+      setAnnouncement(current => ({
+        text: messages.items.categorized.replace('{itemName}', result.item.name).replace('{categoryName}', category?.name ?? ''),
+        sequence: current.sequence + 1,
+      }));
     }
   };
 
@@ -180,162 +137,6 @@ export default function ListDetailPage() {
     return acc;
   }, {} as Record<string, Item[]>);
 
-  function SortableItem({
-    item,
-    isSwipped,
-    handleTouchStart,
-    handleTouchEnd,
-  }: {
-    item: Item;
-    isSwipped: boolean;
-    handleTouchStart: (e: React.TouchEvent) => void;
-    handleTouchEnd: (e: React.TouchEvent) => void;
-  }) {
-    const {
-      attributes,
-      listeners,
-      setNodeRef,
-      transform,
-      transition,
-      isDragging,
-    } = useSortable({ id: item.id, disabled: mode !== 'edit' });
-
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-    };
-
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className="relative overflow-hidden rounded-lg"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        {/* Swipe-to-delete panel */}
-        {isSwipped && mode === 'browse' && (
-          <div
-            className="absolute inset-0 flex items-center justify-center gap-2 px-4"
-            style={{
-              background: '#B14A33',
-              zIndex: 10,
-              width: '110px',
-              right: 0,
-            }}
-          >
-            <Trash2 size={18} color="#fff" />
-            <span style={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}>מחיקה</span>
-          </div>
-        )}
-
-        {/* Item row */}
-        <div
-          className={`item-row ${mode === 'edit' ? 'item-row edit-mode' : ''} ${
-            item.ticked ? 'item-row ticked' : ''
-          } ${isDragging ? 'item-row dragging' : ''}`}
-          style={{
-            transform: isSwipped ? 'translateX(110px)' : 'translateX(0)',
-            transition: 'transform 200ms',
-          }}
-          onClick={() => {
-            if (isSwipped) {
-              handleDeleteItem(item);
-              setSwipedItemId(null);
-              return;
-            }
-            if (mode === 'edit') {
-              setEditingItem(item);
-              setItemName(item.name);
-              setItemQty(item.qty || '');
-              setItemSection(item.section_id || 'other');
-              setShowAddSheet(true);
-            } else {
-              handleTickItem(item);
-            }
-          }}
-        >
-          {mode === 'edit' ? (
-            <div
-              className="w-11 h-11 flex items-center justify-center flex-shrink-0 text-ink-30 cursor-grab active:cursor-grabbing"
-              {...attributes}
-              {...listeners}
-            >
-              <GripVertical size={20} />
-            </div>
-          ) : (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleTickItem(item);
-              }}
-              className="w-11 h-11 flex items-center justify-center flex-shrink-0 bg-transparent border-0 cursor-pointer p-0 transition-all"
-              style={{
-                borderRadius: '50%',
-              }}
-            >
-              <div
-                className="w-26 h-26 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all"
-                style={{
-                  width: '26px',
-                  height: '26px',
-                  borderColor: item.ticked ? '#F4B5A0' : 'rgba(28,27,23,0.3)',
-                  background: item.ticked ? '#F4B5A0' : 'transparent',
-                  borderWidth: '1.8px',
-                }}
-              >
-                {item.ticked && <Check size={14} color="#fff" strokeWidth={3} />}
-              </div>
-            </button>
-          )}
-
-          <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-            <div
-              className={`item-name ${item.ticked ? 'ticked' : ''}`}
-              dir="auto"
-            >
-              {item.name}
-            </div>
-            {item.qty && (
-              <div
-                className={`item-qty ${item.ticked ? 'ticked' : ''}`}
-                dir="rtl"
-              >
-                {item.qty}
-              </div>
-            )}
-          </div>
-
-          {mode === 'edit' && (
-            <div className="flex items-center gap-0 flex-shrink-0">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditingItem(item);
-                  setItemName(item.name);
-                  setItemQty(item.qty || '');
-                  setItemSection(item.section_id || 'other');
-                  setShowAddSheet(true);
-                }}
-                className="icon-btn"
-              >
-                <Pencil size={18} />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteItem(item);
-                }}
-                className="icon-btn danger"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-cream pb-32 flex flex-col">
@@ -492,9 +293,15 @@ export default function ListDetailPage() {
                           };
 
                           return (
-                            <SortableItem
+                            <SortableGroceryItem
                               key={item.id}
                               item={item}
+                              mode={mode}
+                              effectUntil={effects[item.id]}
+                              onEdit={value => { setEditingItem(value); setShowAddSheet(true); }}
+                              onDelete={handleDeleteItem}
+                              onToggle={handleTickItem}
+                              onSwipeHandled={() => setSwipedItemId(null)}
                               isSwipped={isSwipped}
                               handleTouchStart={handleTouchStart}
                               handleTouchEnd={handleTouchEnd}
@@ -524,9 +331,6 @@ export default function ListDetailPage() {
         <button
           onClick={() => {
             setEditingItem(null);
-            setItemName('');
-            setItemQty('');
-            setItemSection('other');
             setShowAddSheet(true);
           }}
           className={`btn w-full ${showCompleteTrip && mode === 'browse' ? 'btn-soft' : 'btn-accent'}`}
@@ -535,70 +339,13 @@ export default function ListDetailPage() {
         </button>
       </div>
 
-      {/* Add/Edit Modal */}
+      <div role="status" aria-live="polite" className="sr-only">
+        <span key={announcement.sequence}>{announcement.text}</span>
+      </div>
       {showAddSheet && (
-        <div className="fixed inset-0 bg-black/40 flex items-end z-50">
-          <div className="w-full bg-cream rounded-t-3xl shadow-sheet max-h-4/5 overflow-y-auto">
-            <div className="flex items-center justify-between p-5 border-b border-ink-06 gap-2">
-              <button
-                onClick={() => setShowAddSheet(false)}
-                className="btn btn-ghost text-sm"
-              >
-                ביטול
-              </button>
-              <h2 className="text-lg font-bold flex-1 text-center">{editingItem ? 'ערוך פריט' : 'הוסף פריט'}</h2>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleAddItem(new Event('submit') as any);
-                }}
-                className="btn btn-accent text-sm"
-              >
-                {editingItem ? 'עדכן' : 'הוסף'}
-              </button>
-            </div>
-
-            <div className="p-6 flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-ink-70">שם הפריט</label>
-                <input
-                  type="text"
-                  value={itemName}
-                  onChange={(e) => setItemName(e.target.value)}
-                  placeholder={typeInfo.itemNamePlaceholder}
-                  className="input"
-                  autoFocus
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-ink-70">כמות (אופציונלי)</label>
-                <input
-                  type="text"
-                  value={itemQty}
-                  onChange={(e) => setItemQty(e.target.value)}
-                  placeholder={typeInfo.itemQtyPlaceholder}
-                  className="input"
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-ink-70">קטגוריה</label>
-                <select
-                  value={itemSection}
-                  onChange={(e) => setItemSection(e.target.value)}
-                  className="input"
-                >
-                  {Object.entries(SECTIONS_BY_TYPE[list.type]).map(([key, section]) => (
-                    <option key={key} value={key}>
-                      {section.emoji} {section.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ItemEditor key={editingItem?.id ?? 'new'} listId={listId} listType={list.type}
+          item={editingItem} orderIndex={items.length} onSaved={onItemSaved}
+          onClose={() => { setShowAddSheet(false); setEditingItem(null); }} />
       )}
 
       {/* Confirm Trip Modal */}

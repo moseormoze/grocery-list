@@ -1,0 +1,17 @@
+name: Grocery import database checks
+on:
+  pull_request:
+    paths:
+      - 'lib/db/**'
+      - 'scripts/test-categorization-db.mjs'
+      - '.github/workflows/grocery-import-db.yml'
+permissions:
+  contents: read
+jobs:
+  transactions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run transaction and concurrency checks on isolated PostgreSQL 16
+        run: node scripts/test-categorization-db.mjs

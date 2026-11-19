@@ -30,6 +30,7 @@ export interface ListWithProgress extends List {
 }
 
 export interface Item {
+  entry_source?: 'manual' | 'text';
   id: string;
   list_id: string;
   name: string;

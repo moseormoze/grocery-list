@@ -39,3 +39,9 @@ describe('parseGroceries', () => {
     expect(transport).toHaveBeenCalledTimes(1)
   })
 })
+
+it('formats spoken counts before units while preserving fractions and compound numbers', async () => {
+  const quantities = ['שש יחידות', 'שתי קופסאות', 'שש עשרה יחידות', 'חצי קילו', 'חבילה אחת']
+  const { items } = await parse(envelope(quantities.map(qty => ({ ...item, qty }))))
+  expect(items.map(row => row.qty)).toEqual(['6 יחידות', '2 קופסאות', ...quantities.slice(2)])
+})

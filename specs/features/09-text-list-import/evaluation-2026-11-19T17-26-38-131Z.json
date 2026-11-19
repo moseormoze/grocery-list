@@ -1,0 +1,238 @@
+{
+  "date": "2026-11-19T17:26:38.131Z",
+  "model": "claude-haiku-5-5",
+  "promptVersion": "he-shopping-v1",
+  "promptHash": "cb7083ed958848d22d8c84410bd220b89046fb19b0339f72f896b6c6f8baf51c",
+  "cases": 12,
+  "scored": 12,
+  "passed": 10,
+  "fieldMatches": {
+    "name": 18,
+    "qty": 16,
+    "negated": 18
+  },
+  "comparedSlots": 18,
+  "rows": [
+    {
+      "text": "מלפפונים, 6 יחידות, עגבניות, 4",
+      "items": [
+        {
+          "name": "מלפפונים",
+          "qty": "6 יחידות",
+          "negated": false
+        },
+        {
+          "name": "עגבניות",
+          "qty": "4",
+          "negated": false
+        }
+      ],
+      "pass": true,
+      "usage": {
+        "input_tokens": 671,
+        "output_tokens": 58
+      },
+      "ms": 1926
+    },
+    {
+      "text": "מלפפונים שש יחידות ועגבניות ארבע",
+      "items": [
+        {
+          "name": "מלפפונים",
+          "qty": "שש יחידות",
+          "negated": false
+        },
+        {
+          "name": "עגבניות",
+          "qty": "4",
+          "negated": false
+        }
+      ],
+      "pass": false,
+      "usage": {
+        "input_tokens": 670,
+        "output_tokens": 58
+      },
+      "ms": 1307
+    },
+    {
+      "text": "גבינה לבנה 5% חבילה אחת",
+      "items": [
+        {
+          "name": "גבינה לבנה 5%",
+          "qty": "חבילה אחת",
+          "negated": false
+        }
+      ],
+      "pass": true,
+      "usage": {
+        "input_tokens": 666,
+        "output_tokens": 42
+      },
+      "ms": 1364
+    },
+    {
+      "text": "חלב",
+      "items": [
+        {
+          "name": "חלב",
+          "qty": null,
+          "negated": false
+        }
+      ],
+      "pass": true,
+      "usage": {
+        "input_tokens": 651,
+        "output_tokens": 28
+      },
+      "ms": 1227
+    },
+    {
+      "text": "חצי קילו עגבניות",
+      "items": [
+        {
+          "name": "עגבניות",
+          "qty": "חצי קילו",
+          "negated": false
+        }
+      ],
+      "pass": true,
+      "usage": {
+        "input_tokens": 659,
+        "output_tokens": 35
+      },
+      "ms": 1332
+    },
+    {
+      "text": "ארבע עגבניות, בעצם שש",
+      "items": [
+        {
+          "name": "עגבניות",
+          "qty": "6",
+          "negated": false
+        }
+      ],
+      "pass": true,
+      "usage": {
+        "input_tokens": 664,
+        "output_tokens": 30
+      },
+      "ms": 1252
+    },
+    {
+      "text": "חלב לא צריך, לחם אחד",
+      "items": [
+        {
+          "name": "חלב",
+          "qty": null,
+          "negated": true
+        },
+        {
+          "name": "לחם",
+          "qty": "1",
+          "negated": false
+        }
+      ],
+      "pass": true,
+      "usage": {
+        "input_tokens": 663,
+        "output_tokens": 48
+      },
+      "ms": 1595
+    },
+    {
+      "text": "חלב ללא לקטוז 2 קרטונים",
+      "items": [
+        {
+          "name": "חלב ללא לקטוז",
+          "qty": "2 קרטונים",
+          "negated": false
+        }
+      ],
+      "pass": true,
+      "usage": {
+        "input_tokens": 667,
+        "output_tokens": 42
+      },
+      "ms": 1565
+    },
+    {
+      "text": "תודה רבה",
+      "items": [],
+      "pass": true,
+      "usage": {
+        "input_tokens": 654,
+        "output_tokens": 8
+      },
+      "ms": 1713
+    },
+    {
+      "text": "Oatly Barista שתי קופסאות",
+      "items": [
+        {
+          "name": "Oatly Barista",
+          "qty": "שתי קופסאות",
+          "negated": false
+        }
+      ],
+      "pass": false,
+      "usage": {
+        "input_tokens": 663,
+        "output_tokens": 39
+      },
+      "ms": 1547
+    },
+    {
+      "text": "פטרוזיליה\n2 קילו תפוחים\nטחינה גולמית",
+      "items": [
+        {
+          "name": "פטרוזיליה",
+          "qty": null,
+          "negated": false
+        },
+        {
+          "name": "תפוחים",
+          "qty": "2 קילו",
+          "negated": false
+        },
+        {
+          "name": "טחינה גולמית",
+          "qty": null,
+          "negated": false
+        }
+      ],
+      "pass": true,
+      "usage": {
+        "input_tokens": 678,
+        "output_tokens": 84
+      },
+      "ms": 1446
+    },
+    {
+      "text": "סקיר וניל — 2 גביעים\nאורז בסמטי\nחלב 3% — קרטון",
+      "items": [
+        {
+          "name": "סקיר וניל",
+          "qty": "2 גביעים",
+          "negated": false
+        },
+        {
+          "name": "אורז בסמטי",
+          "qty": null,
+          "negated": false
+        },
+        {
+          "name": "חלב 3%",
+          "qty": "קרטון",
+          "negated": false
+        }
+      ],
+      "pass": true,
+      "usage": {
+        "input_tokens": 686,
+        "output_tokens": 88
+      },
+      "ms": 1370
+    }
+  ]
+}

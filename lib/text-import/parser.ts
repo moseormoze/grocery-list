@@ -19,12 +19,29 @@ const itemSchema = {
   properties: { name: { type: 'string' }, qty: { anyOf: [{ type: 'string' }, { type: 'null' }] }, negated: { type: 'boolean' } },
 }
 
+const spokenCounts: Record<string, number> = {
+  אחד: 1, אחת: 1, שני: 2, שתי: 2, שניים: 2, שתיים: 2,
+  שלוש: 3, שלושה: 3, ארבע: 4, ארבעה: 4, חמש: 5, חמישה: 5,
+  שש: 6, שישה: 6, שבע: 7, שבעה: 7, שמונה: 8, תשע: 9, תשעה: 9, עשר: 10, עשרה: 10,
+}
+const countUnits = new Set(['יחידות', 'קופסאות', 'חבילות', 'גביעים', 'קרטונים', 'בקבוקים', 'שקיות', 'תבניות', 'קילו', 'ליטרים'])
+
+function formatQuantity(qty: string | null): string | null {
+  if (qty === null) return null
+  const trimmed = qty.trim()
+  const words = trimmed.split(/\s+/u)
+  if (!Object.prototype.hasOwnProperty.call(spokenCounts, words[0])) return trimmed
+  if (words.length === 1) return String(spokenCounts[words[0]])
+  if (words.length === 2 && countUnits.has(words[1])) return [spokenCounts[words[0]], words[1]].join(' ')
+  return trimmed
+}
+
 function readItem(value: unknown): DraftItem {
   if (!isRecord(value) || Object.keys(value).length !== 3 ||
     typeof value.name !== 'string' || !value.name.trim() || value.name.length > 500 ||
     !(value.qty === null || (typeof value.qty === 'string' && value.qty.trim() && value.qty.length <= 200)) ||
     typeof value.negated !== 'boolean') throw new Error('Invalid extracted item')
-  return { name: value.name.trim(), qty: value.qty?.trim() ?? null, negated: value.negated }
+  return { name: value.name.trim(), qty: formatQuantity(value.qty), negated: value.negated }
 }
 
 function readResponse(body: unknown) {

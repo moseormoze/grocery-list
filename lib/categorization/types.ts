@@ -34,6 +34,7 @@ export function parseSaveResult(value: unknown): SaveResult {
     typeof i.created_at !== 'string' || typeof i.updated_at !== 'string') throw new Error('Invalid saved item')
   return {
     item: { id: i.id, list_id: i.list_id, name: i.name, qty: i.qty ?? undefined, section_id: i.section_id,
+      ...(i.entry_source === 'text' || i.entry_source === 'manual' ? {entry_source:i.entry_source} : {}),
       ticked: i.ticked, order_index: i.order_index, created_by_user_id: i.created_by_user_id, created_at: i.created_at, updated_at: i.updated_at },
     source: value.source as CategorySource,
   }

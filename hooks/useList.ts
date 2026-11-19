@@ -23,7 +23,7 @@ export interface UseListState {
  * Automatically subscribes to changes and unsubscribes on unmount.
  * Supports optimistic updates via updateOptimistically.
  */
-export function useList(listId: string): UseListState & { updateOptimistically: (item: Item) => void; deleteOptimistically: (itemId: string) => void; reorderOptimistically: (orderedIds: string[]) => void } {
+export function useList(listId: string): UseListState & { appendImported: (items: Item[]) => void; updateOptimistically: (item: Item) => void; deleteOptimistically: (itemId: string) => void; reorderOptimistically: (orderedIds: string[]) => void } {
   const [list, setList] = useState<List | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +44,14 @@ export function useList(listId: string): UseListState & { updateOptimistically: 
       return [...prev, item];
     });
   }, []);
+
+  // A realtime event may arrive before the receipt, including a partner's newer edit.
+  const appendImported = useCallback((saved: Item[]) => {
+    setItems(current => {
+      const known = new Set(current.map(item => item.id))
+      return [...current, ...saved.filter(item => !known.has(item.id))]
+    })
+  }, [])
 
   // Optimistic delete: remove item from local state immediately
   const deleteOptimistically = useCallback((itemId: string) => {
@@ -163,6 +171,7 @@ export function useList(listId: string): UseListState & { updateOptimistically: 
     loading,
     error,
     refetch,
+    appendImported,
     updateOptimistically,
     deleteOptimistically,
     reorderOptimistically,

@@ -11,7 +11,7 @@ import messages from '@/messages/he.json'
 
 const t = messages.textImport
 const departments = SECTIONS_BY_TYPE.supermarket
-type Props = { listId: string; onClose: () => void; onImported: (items: Item[]) => void }
+type Props = { listId: string; onClose: () => void; onImported: (items: Item[], retried: boolean) => void }
 
 export function TextImportSheet({ listId, onClose, onImported }: Props) {
   const [text, setText] = useState('')
@@ -37,9 +37,21 @@ export function TextImportSheet({ listId, onClose, onImported }: Props) {
     if (el?.showModal) el.showModal()
     else el?.setAttribute('open', '')
     input.current?.focus()
+    const viewport = window.visualViewport
+    function positionAboveKeyboard() {
+      if (!viewport || !el) return
+      const bottom = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+      el.style.setProperty('--import-bottom', bottom + 'px')
+      el.style.setProperty('--import-height', Math.floor(viewport.height * 0.92) + 'px')
+    }
+    positionAboveKeyboard()
+    viewport?.addEventListener('resize', positionAboveKeyboard)
+    viewport?.addEventListener('scroll', positionAboveKeyboard)
     const overflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
+      viewport?.removeEventListener('resize', positionAboveKeyboard)
+      viewport?.removeEventListener('scroll', positionAboveKeyboard)
       mounted.current = false
       request.current?.abort()
       if (el?.open) el.close?.()
@@ -123,6 +135,7 @@ export function TextImportSheet({ listId, onClose, onImported }: Props) {
     setBusy(t.saving)
     setError('')
     try {
+      const retried = confirmation.current !== null
       confirmation.current ??= createImportConfirmation(
         listId,
         selected.map((r) => ({
@@ -136,7 +149,7 @@ export function TextImportSheet({ listId, onClose, onImported }: Props) {
       const result = await confirmation.current.submit()
       if (!mounted.current) return
       if (result.status === 'saved') {
-        onImported(result.items)
+        onImported(result.items, retried)
         return
       }
       const conflicts = new Set(result.conflicts.map((c) => selected[c.index]))

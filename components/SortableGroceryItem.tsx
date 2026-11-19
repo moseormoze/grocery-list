@@ -8,11 +8,11 @@ import { CategorySwish } from './CategorySwish'
 import messages from '@/messages/he.json'
 
 type Props = {
-  item: Item, mode: 'browse' | 'edit', isSwipped: boolean, effectUntil?: number,
+  item: Item, mode: 'browse' | 'edit', isSwipped: boolean, effectUntil?: number, importedNow?: boolean,
   handleTouchStart: (event: React.TouchEvent) => void, handleTouchEnd: (event: React.TouchEvent) => void,
   onEdit: (item: Item) => void, onDelete: (item: Item) => void, onToggle: (item: Item) => void, onSwipeHandled: () => void,
 }
-export function SortableGroceryItem({ item, mode, isSwipped, effectUntil, handleTouchStart, handleTouchEnd, onEdit, onDelete, onToggle, onSwipeHandled }: Props) {
+export function SortableGroceryItem({ item, mode, isSwipped, effectUntil, importedNow, handleTouchStart, handleTouchEnd, onEdit, onDelete, onToggle, onSwipeHandled }: Props) {
     const {
       attributes,
       listeners,
@@ -53,7 +53,7 @@ export function SortableGroceryItem({ item, mode, isSwipped, effectUntil, handle
 
         {/* Item row */}
         <div
-          className={`relative item-row ${mode === 'edit' ? 'item-row edit-mode' : ''} ${
+          className={`relative item-row ${importedNow ? 'import-fresh' : ''} ${mode === 'edit' ? 'item-row edit-mode' : ''} ${
             item.ticked ? 'item-row ticked' : ''
           } ${isDragging ? 'item-row dragging' : ''}`}
           style={{
@@ -125,6 +125,9 @@ export function SortableGroceryItem({ item, mode, isSwipped, effectUntil, handle
             )}
           </div>
 
+          {item.entry_source === 'text' && !item.ticked && (
+            <span className="import-source-badge">{messages.textImport.badge}</span>
+          )}
           {mode === 'edit' && (
             <div className="flex items-center gap-0 flex-shrink-0">
               <button

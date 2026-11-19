@@ -44,6 +44,8 @@ function readItem(value: unknown): DraftItem {
   return { name: value.name.trim(), qty: formatQuantity(value.qty), negated: value.negated }
 }
 
+export class TooManyImportItems extends Error {}
+
 function readResponse(body: unknown) {
   if (!isRecord(body) || body.stop_reason !== 'end_turn' || !Array.isArray(body.content)) {
     throw new Error('Incomplete extraction')
@@ -52,9 +54,10 @@ function readResponse(body: unknown) {
   const block = texts[0]
   if (texts.length !== 1 || !isRecord(block) || typeof block.text !== 'string') throw new Error('Missing extracted text')
   const data: unknown = JSON.parse(block.text)
-  if (!isRecord(data) || Object.keys(data).length !== 1 || !Array.isArray(data.items) || data.items.length > 60) {
+  if (!isRecord(data) || Object.keys(data).length !== 1 || !Array.isArray(data.items)) {
     throw new Error('Invalid shopping list')
   }
+  if (data.items.length > 60) throw new TooManyImportItems('Preview limit exceeded')
   const usage = body.usage
   return {
     items: data.items.map(readItem),

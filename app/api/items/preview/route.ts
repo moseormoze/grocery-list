@@ -42,9 +42,11 @@ export async function POST(request: Request) {
     if (origin && origin !== new URL(request.url).origin) throw new SaveError(403)
     if (request.headers.get('content-type')?.split(';')[0].trim() !== 'application/json') throw new SaveError(415)
     const input = await readPayload(request, 32_768)
-    if (!isRecord(input) || typeof input.listId !== 'string' || !uuid.test(input.listId) ||
-      typeof input.text !== 'string' || !input.text.trim() || input.text.includes('\0')) throw new SaveError(400)
-    const { listId, text } = input
+    if (!isRecord(input) || typeof input.listId !== 'string' || !uuid.test(input.listId)) throw new SaveError(400)
+    const { listId } = input
+    const rename = 'name' in input
+    const text = rename ? input.name : input.text
+    if (typeof text !== 'string' || !text.trim() || text.includes('\0') || (rename && ('text' in input || text.length > 500))) throw new SaveError(400)
     if (text.length > 4000) throw new SaveError(413)
     const db = await createServerSupabase()
     const { data: { user }, error: authError } = await db.auth.getUser()
@@ -54,7 +56,7 @@ export async function POST(request: Request) {
     if (error) throw new SaveError(500)
     if (list?.type !== 'supermarket') throw new SaveError(403)
     const key = process.env.ANTHROPIC_API_KEY ?? ''
-    const { items } = await parseGroceries(text, { key }).catch(error => {
+    const { items } = rename ? { items: [{ name: text, qty: null, negated: false }] } : await parseGroceries(text, { key }).catch(error => {
       throw new SaveError(error instanceof TooManyImportItems ? 413 : 502)
     })
     if (!items.length) return json({ items: [] })
